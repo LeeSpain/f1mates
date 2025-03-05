@@ -74,6 +74,10 @@ export default {
         sans: ["var(--font-sans)", ...fontFamily.sans],
         display: ["Space Grotesk", ...fontFamily.sans], // Added display font
       },
+      boxShadow: {
+        'glass': '0 4px 30px rgba(0, 0, 0, 0.1)',
+        'neon': '0 0 10px rgba(231, 6, 0, 0.5), 0 0 20px rgba(231, 6, 0, 0.3)',
+      },
       keyframes: {
         "accordion-down": {
           from: { height: "0" },
