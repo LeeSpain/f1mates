@@ -12,6 +12,7 @@ import { ChatWidget } from '@/components/ChatWidget';
 import { RulesOverview } from '@/components/RulesOverview';
 import { useToast } from '@/hooks/use-toast';
 import { Driver, DriverGroup } from '@/types/driver';
+import { mySquad, allDrivers } from '@/data/mockData';
 
 // Dashboard tabs
 type Tab = 'mySquad' | 'leaderboard' | 'raceResults' | 'swapsAndPicks' | 'chat' | 'rules';
@@ -143,6 +144,7 @@ const Dashboard = () => {
           </p>
         </footer>
       </div>
+      <Toaster />
     </div>
   );
 };

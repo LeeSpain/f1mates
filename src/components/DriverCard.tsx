@@ -25,7 +25,10 @@ export const DriverCard = ({ driver }: DriverCardProps) => {
   };
 
   return (
-    <div className={cn("driver-card", getDriverCardClass())}>
+    <div className={cn("driver-card rounded-lg p-4 border", 
+      driver.group === 'A' ? 'border-red-600 bg-f1-black/80' : 
+      driver.group === 'B' ? 'border-blue-400 bg-f1-black/80' : 
+      'border-white/20 bg-f1-black/80')}>
       <div className="flex justify-between items-start mb-2">
         <div>
           <span className="text-xs text-gray-400">Group {driver.group}</span>
@@ -60,11 +63,11 @@ export const DriverCard = ({ driver }: DriverCardProps) => {
         </div>
       </div>
       
-      <div className="relative h-40 mb-3 rounded overflow-hidden">
+      <div className="relative h-44 mb-3 rounded overflow-hidden">
         <img 
           src={driver.image} 
           alt={driver.name} 
-          className="w-full h-full object-cover"
+          className="w-full h-full object-contain object-center"
         />
       </div>
       
