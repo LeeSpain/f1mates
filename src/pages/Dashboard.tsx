@@ -11,6 +11,7 @@ import { SwapsAndPicks } from '@/components/SwapsAndPicks';
 import { ChatWidget } from '@/components/ChatWidget';
 import { RulesOverview } from '@/components/RulesOverview';
 import { useToast } from '@/hooks/use-toast';
+import { Driver, DriverGroup } from '@/types/driver';
 
 // Dashboard tabs
 type Tab = 'mySquad' | 'leaderboard' | 'raceResults' | 'swapsAndPicks' | 'chat' | 'rules';
@@ -20,11 +21,11 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Sample data for demo
-  const myDrivers = [
-    { id: 1, name: "Max Verstappen", team: "Red Bull Racing", group: "A", image: "https://media.formula1.com/content/dam/fom-website/drivers/2023Drivers/verstappen.jpg.img.1920.medium.jpg/1677069646195.jpg", points: 25, locked: true },
-    { id: 2, name: "Alex Albon", team: "Williams", group: "B", image: "https://media.formula1.com/content/dam/fom-website/drivers/2023Drivers/albon.jpg.img.1920.medium.jpg/1677069655110.jpg", points: 4, locked: false },
-    { id: 3, name: "Yuki Tsunoda", team: "RB", group: "C", image: "https://media.formula1.com/content/dam/fom-website/drivers/2023Drivers/tsunoda.jpg.img.1920.medium.jpg/1677069888562.jpg", points: 0, locked: false }
+  // Sample data for demo with correct typing for DriverGroup
+  const myDrivers: Driver[] = [
+    { id: 1, name: "Max Verstappen", team: "Red Bull Racing", group: "A" as DriverGroup, image: "https://media.formula1.com/content/dam/fom-website/drivers/2023Drivers/verstappen.jpg.img.1920.medium.jpg/1677069646195.jpg", points: 25, locked: true },
+    { id: 2, name: "Alex Albon", team: "Williams", group: "B" as DriverGroup, image: "https://media.formula1.com/content/dam/fom-website/drivers/2023Drivers/albon.jpg.img.1920.medium.jpg/1677069655110.jpg", points: 4, locked: false },
+    { id: 3, name: "Yuki Tsunoda", team: "RB", group: "C" as DriverGroup, image: "https://media.formula1.com/content/dam/fom-website/drivers/2023Drivers/tsunoda.jpg.img.1920.medium.jpg/1677069888562.jpg", points: 0, locked: false }
   ];
 
   // Handle logout
