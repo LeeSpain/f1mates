@@ -7,6 +7,7 @@ export interface User extends Omit<PlayerStanding, 'isCurrentLeader' | 'isOnHotS
   email: string;
   password: string;
   avatar: string;
+  isAdmin?: boolean;
 }
 
 // Define the auth context structure
@@ -19,6 +20,22 @@ interface AuthContextType {
 
 // Create the players data with login credentials
 const players: User[] = [
+  // Admin user
+  { 
+    id: 0, 
+    name: "Admin", 
+    email: "admin@f1mate.com",
+    password: "admin123",
+    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Admin",
+    groupAPoints: 0, 
+    groupBPoints: 0, 
+    groupCPoints: 0,
+    bonusPoints: 0, 
+    totalPoints: 0, 
+    weeklyWins: 0, 
+    bestGroupCFinish: "N/A",
+    isAdmin: true
+  },
   { 
     id: 1, 
     name: "John", 
@@ -173,9 +190,13 @@ export const useAuth = () => useContext(AuthContext);
 export const getAllPlayers = (): (User & { isCurrentLeader: boolean; isOnHotStreak: boolean })[] => {
   const { currentUser } = useAuth();
   
-  return players.map(player => ({
-    ...player,
-    isCurrentLeader: player.id === 1, // Assuming player 1 is always the leader for simplicity
-    isOnHotStreak: player.weeklyWins > 1 // Consider players with more than 1 win on a hot streak
-  })).sort((a, b) => b.totalPoints - a.totalPoints);
+  // Filter out the admin user from the leaderboard
+  return players
+    .filter(player => !player.isAdmin)
+    .map(player => ({
+      ...player,
+      isCurrentLeader: player.id === 1, // Assuming player 1 is always the leader for simplicity
+      isOnHotStreak: player.weeklyWins > 1 // Consider players with more than 1 win on a hot streak
+    }))
+    .sort((a, b) => b.totalPoints - a.totalPoints);
 };

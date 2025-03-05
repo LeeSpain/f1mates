@@ -57,26 +57,6 @@ const Index = () => {
     }
   };
 
-  const handleDemoLogin = async (demoEmail: string) => {
-    setEmail(demoEmail);
-    setPassword('password' + demoEmail.charAt(0));
-    
-    // Manually trigger login after state update
-    setTimeout(async () => {
-      setIsLoading(true);
-      const success = await login(demoEmail, 'password' + demoEmail.charAt(0));
-      
-      if (success) {
-        toast({
-          title: `Welcome, ${demoEmail.split('@')[0]}!`,
-          description: "You've logged in with demo credentials.",
-        });
-        navigate('/dashboard');
-      }
-      setIsLoading(false);
-    }, 100);
-  };
-
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-f1-darkBlue to-black text-white">
       {/* Racing line animation */}
@@ -118,63 +98,24 @@ const Index = () => {
               </div>
               
               <div className="glassmorphism rounded-xl p-6">
-                <h2 className="text-2xl font-bold mb-4">Demo Accounts</h2>
+                <h2 className="text-2xl font-bold mb-4">Admin Access</h2>
                 <p className="mb-4">
-                  Try out the app with one of our 6 player accounts:
+                  To access the admin dashboard, use the following credentials:
                 </p>
-                <div className="grid grid-cols-2 gap-3 mb-4">
-                  <Button 
-                    variant="outline" 
-                    className="border-white/20 text-white hover:bg-white/10" 
-                    onClick={() => handleDemoLogin('john@f1mate.com')}
-                    disabled={isLoading}
-                  >
-                    Login as John
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    className="border-white/20 text-white hover:bg-white/10" 
-                    onClick={() => handleDemoLogin('dave@f1mate.com')}
-                    disabled={isLoading}
-                  >
-                    Login as Dave
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    className="border-white/20 text-white hover:bg-white/10" 
-                    onClick={() => handleDemoLogin('sarah@f1mate.com')}
-                    disabled={isLoading}
-                  >
-                    Login as Sarah
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    className="border-white/20 text-white hover:bg-white/10" 
-                    onClick={() => handleDemoLogin('mike@f1mate.com')}
-                    disabled={isLoading}
-                  >
-                    Login as Mike
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    className="border-white/20 text-white hover:bg-white/10" 
-                    onClick={() => handleDemoLogin('emma@f1mate.com')}
-                    disabled={isLoading}
-                  >
-                    Login as Emma
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    className="border-white/20 text-white hover:bg-white/10" 
-                    onClick={() => handleDemoLogin('alex@f1mate.com')}
-                    disabled={isLoading}
-                  >
-                    Login as Alex
-                  </Button>
+                <div className="space-y-3">
+                  <div className="flex items-start gap-3">
+                    <div className="bg-f1-red rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">👤</div>
+                    <p><strong>Email:</strong> admin@f1mate.com</p>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="bg-f1-red rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">🔑</div>
+                    <p><strong>Password:</strong> admin123</p>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="bg-f1-red rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">ℹ️</div>
+                    <p>The admin dashboard provides access to manage races, drivers, and user accounts.</p>
+                  </div>
                 </div>
-                <p className="text-xs text-center text-gray-400">
-                  All demo accounts use the password format "password" + first letter of name (e.g., "password1" for John)
-                </p>
               </div>
             </div>
           </div>
