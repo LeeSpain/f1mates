@@ -72,6 +72,7 @@ export default {
       },
       fontFamily: {
         sans: ["var(--font-sans)", ...fontFamily.sans],
+        display: ["Space Grotesk", ...fontFamily.sans], // Added display font
       },
       keyframes: {
         "accordion-down": {
