@@ -1,98 +1,74 @@
 
 import React, { useState } from 'react';
+import { Send } from 'lucide-react';
 import { chatMessages } from '@/data/mockData';
-import { Send, Image } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/auth/AuthContext';
 
 interface ChatWidgetProps {
   minimal?: boolean;
 }
 
 export const ChatWidget = ({ minimal = false }: ChatWidgetProps) => {
-  const [message, setMessage] = useState('');
-  const { toast } = useToast();
+  const [messages, setMessages] = useState(chatMessages);
+  const [newMessage, setNewMessage] = useState('');
+  const { currentUser } = useAuth();
   
-  const handleSendMessage = () => {
-    if (!message.trim()) {
-      return;
-    }
+  const handleSendMessage = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newMessage.trim() || !currentUser) return;
     
-    toast({
-      title: "Message sent",
-      description: "Your message has been sent to the banter zone.",
-    });
+    const message = {
+      id: messages.length + 1,
+      user: currentUser.name,
+      avatar: currentUser.avatar,
+      content: newMessage,
+      timestamp: new Date().toISOString(),
+      isYou: true
+    };
     
-    setMessage('');
+    setMessages([...messages, message]);
+    setNewMessage('');
   };
-
+  
   return (
-    <div className={`flex flex-col ${minimal ? 'h-full' : 'h-[calc(100vh-15rem)]'}`}>
-      <div className="flex-1 overflow-y-auto px-1 py-2">
-        <div className="space-y-4">
-          {chatMessages.map((chat) => (
-            <div 
-              key={chat.id} 
-              className={`flex ${chat.isYou ? 'justify-end' : 'justify-start'}`}
-            >
-              <div className={`flex max-w-[85%] ${chat.isYou ? 'flex-row-reverse' : 'flex-row'}`}>
-                {!minimal && (
-                  <div className="flex-shrink-0">
-                    <div className="w-8 h-8 rounded-full overflow-hidden">
-                      <img src={chat.avatar} alt={chat.user} className="w-full h-full object-cover" />
-                    </div>
-                  </div>
-                )}
-                
-                <div 
-                  className={`px-3 py-2 rounded-lg mx-2 ${
-                    chat.isYou 
-                      ? 'bg-f1-red text-white rounded-tr-none' 
-                      : 'bg-white/10 text-white rounded-tl-none'
-                  }`}
-                >
-                  {!minimal && <div className="text-xs mb-1">{chat.user}</div>}
-                  <div>{chat.content}</div>
+    <div className={`flex flex-col h-full ${minimal ? 'max-h-[400px]' : ''}`}>
+      <div className="flex-1 overflow-y-auto mb-4 space-y-4 p-2">
+        {messages.map((message) => (
+          <div 
+            key={message.id} 
+            className={`flex ${message.isYou || message.user === currentUser?.name ? 'justify-end' : 'justify-start'}`}
+          >
+            <div className={`flex items-start gap-2 max-w-[80%] ${message.isYou || message.user === currentUser?.name ? 'flex-row-reverse' : ''}`}>
+              <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
+                <img src={message.avatar} alt={message.user} className="w-full h-full object-cover" />
+              </div>
+              <div className={`p-3 rounded-lg ${message.isYou || message.user === currentUser?.name ? 'bg-f1-red text-white' : 'bg-white/10'}`}>
+                <div className="text-xs text-gray-300 mb-1">
+                  {message.user === currentUser?.name ? 'You' : message.user}
                 </div>
+                <p>{message.content}</p>
               </div>
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
       </div>
       
-      <div className="border-t border-white/10 p-2 pt-3">
-        <div className="flex items-center gap-2">
-          <Button 
-            variant="outline" 
-            size="icon" 
-            className="rounded-full h-8 w-8 bg-transparent border-white/20"
-          >
-            <Image className="h-4 w-4" />
-          </Button>
-          
-          <input
-            type="text"
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            placeholder="Type your message..."
-            className="flex-1 bg-transparent border-none outline-none"
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                handleSendMessage();
-              }
-            }}
-          />
-          
-          <Button
-            variant="ghost"
-            size="icon"
-            className="rounded-full h-8 w-8 text-f1-red hover:text-white hover:bg-f1-red"
-            onClick={handleSendMessage}
-          >
-            <Send className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
+      <form onSubmit={handleSendMessage} className="flex gap-2">
+        <input
+          type="text"
+          value={newMessage}
+          onChange={(e) => setNewMessage(e.target.value)}
+          placeholder="Type your message..."
+          className="flex-1 p-2 rounded bg-white/10 border border-white/20 text-white"
+        />
+        <button 
+          type="submit"
+          className="p-2 bg-f1-red rounded hover:bg-f1-red/90"
+          disabled={!newMessage.trim()}
+        >
+          <Send className="h-5 w-5" />
+        </button>
+      </form>
     </div>
   );
 };

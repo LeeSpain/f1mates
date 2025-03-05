@@ -13,6 +13,7 @@ import { RulesOverview } from '@/components/RulesOverview';
 import { useToast } from '@/hooks/use-toast';
 import { Driver, DriverGroup } from '@/types/driver';
 import { mySquad, allDrivers } from '@/data/mockData';
+import { useAuth } from '@/auth/AuthContext';
 
 // Dashboard tabs
 type Tab = 'mySquad' | 'leaderboard' | 'raceResults' | 'swapsAndPicks' | 'chat' | 'rules';
@@ -21,23 +22,39 @@ const Dashboard = () => {
   const [activeTab, setActiveTab] = useState<Tab>('mySquad');
   const navigate = useNavigate();
   const { toast } = useToast();
-
-  // Sample data for demo with correct typing for DriverGroup
-  const myDrivers: Driver[] = [
-    { id: 1, name: "Max Verstappen", team: "Red Bull Racing", group: "A" as DriverGroup, image: "https://media.formula1.com/content/dam/fom-website/drivers/2023Drivers/verstappen.jpg.img.1920.medium.jpg/1677069646195.jpg", points: 25, locked: true },
-    { id: 2, name: "Alex Albon", team: "Williams", group: "B" as DriverGroup, image: "https://media.formula1.com/content/dam/fom-website/drivers/2023Drivers/albon.jpg.img.1920.medium.jpg/1677069655110.jpg", points: 4, locked: false },
-    { id: 3, name: "Yuki Tsunoda", team: "RB", group: "C" as DriverGroup, image: "https://media.formula1.com/content/dam/fom-website/drivers/2023Drivers/tsunoda.jpg.img.1920.medium.jpg/1677069888562.jpg", points: 0, locked: false }
-  ];
+  const { currentUser, logout } = useAuth();
 
   // Handle logout
   const handleLogout = () => {
-    localStorage.removeItem('f1-mate-logged-in');
+    logout();
     toast({
       title: "Logged out",
       description: "You've been successfully logged out.",
     });
     navigate('/');
   };
+
+  // Get user's drivers
+  const getUserDrivers = (): Driver[] => {
+    // For simplicity, we're assigning drivers based on user ID
+    // In a real app, this would come from a database
+    const driverIds = [
+      currentUser?.id || 1, // Group A driver (1-6 matching user ID)
+      6 + currentUser?.id || 7, // Group B driver (7-12)
+      12 + currentUser?.id || 13, // Group C driver (13-18)
+    ];
+    
+    return driverIds.map(id => {
+      const driver = allDrivers.find(d => d.id === id);
+      if (!driver) {
+        // Fallback if driver not found
+        return allDrivers[0];
+      }
+      return driver;
+    });
+  };
+
+  const myDrivers = getUserDrivers();
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-f1-darkBlue to-black text-white">
@@ -49,7 +66,9 @@ const Dashboard = () => {
             <RaceTimer nextRace="Saudi GP" date="March 9, 2025" />
           </div>
           <div className="flex items-center space-x-4">
-            <span className="font-medium">Your Season Points: 485</span>
+            <span className="font-medium">
+              {currentUser?.name}'s Points: {currentUser?.totalPoints}
+            </span>
             <button 
               onClick={handleLogout}
               className="px-4 py-1 rounded bg-f1-red hover:bg-f1-red/90 transition-colors"
@@ -69,7 +88,7 @@ const Dashboard = () => {
             {/* My Squad */}
             {activeTab === 'mySquad' && (
               <div className="space-y-6 animate-fade-in">
-                <h2 className="text-2xl font-bold mb-4">My Squad</h2>
+                <h2 className="text-2xl font-bold mb-4">{currentUser?.name}'s Squad</h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {myDrivers.map(driver => (
                     <DriverCard 

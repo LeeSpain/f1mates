@@ -1,30 +1,80 @@
 
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Trophy, Flag, Users, ArrowRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/auth/AuthContext';
 
 const Index = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { currentUser, login } = useAuth();
+  
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    // Check if user is already logged in
-    const isLoggedIn = localStorage.getItem('f1-mate-logged-in') === 'true';
-    if (isLoggedIn) {
+    // If already logged in, redirect to dashboard
+    if (currentUser) {
       navigate('/dashboard');
     }
-  }, [navigate]);
+  }, [currentUser, navigate]);
 
-  const handleDemoLogin = () => {
-    // For demo purposes, set logged in state
-    localStorage.setItem('f1-mate-logged-in', 'true');
-    toast({
-      title: "Welcome to F1 Mate Racer!",
-      description: "You've successfully logged in.",
-    });
-    navigate('/dashboard');
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setIsLoading(true);
+    
+    try {
+      const success = await login(email, password);
+      
+      if (success) {
+        toast({
+          title: `Welcome back, ${email.split('@')[0]}!`,
+          description: "You've successfully logged in.",
+        });
+        navigate('/dashboard');
+      } else {
+        setError('Invalid email or password');
+        toast({
+          title: "Login failed",
+          description: "Invalid email or password.",
+          variant: "destructive",
+        });
+      }
+    } catch (err) {
+      setError('An error occurred during login');
+      toast({
+        title: "Login error",
+        description: "An unexpected error occurred.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDemoLogin = async (demoEmail: string) => {
+    setEmail(demoEmail);
+    setPassword('password' + demoEmail.charAt(0));
+    
+    // Manually trigger login after state update
+    setTimeout(async () => {
+      setIsLoading(true);
+      const success = await login(demoEmail, 'password' + demoEmail.charAt(0));
+      
+      if (success) {
+        toast({
+          title: `Welcome, ${demoEmail.split('@')[0]}!`,
+          description: "You've logged in with demo credentials.",
+        });
+        navigate('/dashboard');
+      }
+      setIsLoading(false);
+    }, 100);
   };
 
   return (
@@ -36,7 +86,7 @@ const Index = () => {
       
       <div className="container mx-auto px-4 py-16 flex flex-col flex-1">
         <header className="text-center mb-12 animate-fade-in">
-          <h1 className="heading-xl mb-4">F1 Mate Racer</h1>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">F1 Mate Racer</h1>
           <p className="text-xl md:text-2xl max-w-2xl mx-auto text-gray-300">
             Pick your drivers, swap your flops, and flex on your mates!
           </p>
@@ -68,25 +118,72 @@ const Index = () => {
               </div>
               
               <div className="glassmorphism rounded-xl p-6">
-                <h2 className="text-2xl font-bold mb-4">Perfect For Mates</h2>
+                <h2 className="text-2xl font-bold mb-4">Demo Accounts</h2>
                 <p className="mb-4">
-                  Designed for 4-6 players, F1 Mate Racer combines fantasy sports with the 
-                  perfect amount of strategy and banter. Get your crew together, draft your 
-                  dream team, and battle all season long!
+                  Try out the app with one of our 6 player accounts:
                 </p>
-                <Button size="lg" className="w-full bg-f1-red hover:bg-f1-red/90" onClick={handleDemoLogin}>
-                  <span>Get Started</span>
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
+                <div className="grid grid-cols-2 gap-3 mb-4">
+                  <Button 
+                    variant="outline" 
+                    className="border-white/20 text-white hover:bg-white/10" 
+                    onClick={() => handleDemoLogin('john@f1mate.com')}
+                    disabled={isLoading}
+                  >
+                    Login as John
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    className="border-white/20 text-white hover:bg-white/10" 
+                    onClick={() => handleDemoLogin('dave@f1mate.com')}
+                    disabled={isLoading}
+                  >
+                    Login as Dave
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    className="border-white/20 text-white hover:bg-white/10" 
+                    onClick={() => handleDemoLogin('sarah@f1mate.com')}
+                    disabled={isLoading}
+                  >
+                    Login as Sarah
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    className="border-white/20 text-white hover:bg-white/10" 
+                    onClick={() => handleDemoLogin('mike@f1mate.com')}
+                    disabled={isLoading}
+                  >
+                    Login as Mike
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    className="border-white/20 text-white hover:bg-white/10" 
+                    onClick={() => handleDemoLogin('emma@f1mate.com')}
+                    disabled={isLoading}
+                  >
+                    Login as Emma
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    className="border-white/20 text-white hover:bg-white/10" 
+                    onClick={() => handleDemoLogin('alex@f1mate.com')}
+                    disabled={isLoading}
+                  >
+                    Login as Alex
+                  </Button>
+                </div>
+                <p className="text-xs text-center text-gray-400">
+                  All demo accounts use the password format "password" + first letter of name (e.g., "password1" for John)
+                </p>
               </div>
             </div>
           </div>
           
           <div id="auth-section" className="lg:w-1/2 animate-slide-from-right">
             <div className="glassmorphism rounded-xl p-8 max-w-md mx-auto">
-              <h2 className="text-2xl font-bold mb-6 text-center">Login / Register</h2>
+              <h2 className="text-2xl font-bold mb-6 text-center">Login</h2>
               
-              <div className="space-y-4">
+              <form onSubmit={handleLogin} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium mb-1" htmlFor="email">Email</label>
                   <input 
@@ -94,6 +191,9 @@ const Index = () => {
                     id="email"
                     className="w-full p-2 rounded bg-white/10 border border-white/20 text-white"
                     placeholder="your@email.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
                   />
                 </div>
                 
@@ -104,8 +204,15 @@ const Index = () => {
                     id="password"
                     className="w-full p-2 rounded bg-white/10 border border-white/20 text-white"
                     placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
                   />
                 </div>
+                
+                {error && (
+                  <div className="text-red-400 text-sm">{error}</div>
+                )}
                 
                 <div className="flex items-center">
                   <input 
@@ -116,26 +223,15 @@ const Index = () => {
                   />
                   <label htmlFor="remember" className="text-sm">Stay logged in</label>
                 </div>
-              </div>
-              
-              <div className="mt-6 space-y-3">
+                
                 <Button 
-                  className="w-full bg-f1-red hover:bg-f1-red/90" 
-                  onClick={handleDemoLogin}
+                  className="w-full bg-f1-red hover:bg-f1-red/90"
+                  type="submit"
+                  disabled={isLoading}
                 >
-                  Login
+                  {isLoading ? 'Logging in...' : 'Login'}
                 </Button>
-                <Button 
-                  variant="outline" 
-                  className="w-full border-white/20 text-white hover:bg-white/10" 
-                  onClick={handleDemoLogin}
-                >
-                  Register
-                </Button>
-                <p className="text-xs text-center text-gray-400 mt-4">
-                  For demo purposes, all buttons will log you in
-                </p>
-              </div>
+              </form>
             </div>
           </div>
         </main>

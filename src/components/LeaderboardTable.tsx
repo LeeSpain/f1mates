@@ -1,9 +1,12 @@
 
 import React from 'react';
 import { Crown, Flame } from 'lucide-react';
-import { leaderboard } from '@/data/mockData';
+import { getAllPlayers, useAuth } from '@/auth/AuthContext';
 
 export const LeaderboardTable = () => {
+  const { currentUser } = useAuth();
+  const leaderboard = getAllPlayers();
+  
   return (
     <div className="space-y-6">
       <div className="p-4 bg-white/5 rounded-lg border border-white/10">
@@ -23,7 +26,7 @@ export const LeaderboardTable = () => {
             </thead>
             <tbody>
               {leaderboard.map((player) => (
-                <tr key={player.id} className="border-b border-white/5 hover:bg-white/5">
+                <tr key={player.id} className={`border-b border-white/5 hover:bg-white/5 ${currentUser?.id === player.id ? 'bg-f1-red/10' : ''}`}>
                   <td className="py-3">
                     <div className="flex items-center gap-2">
                       {player.isCurrentLeader && (
@@ -33,6 +36,9 @@ export const LeaderboardTable = () => {
                         <Flame className="h-4 w-4 text-orange-500" />
                       )}
                       <span>{player.name}</span>
+                      {currentUser?.id === player.id && (
+                        <span className="text-xs bg-f1-red/80 px-2 py-0.5 rounded ml-1">You</span>
+                      )}
                     </div>
                   </td>
                   <td className="py-3">{player.groupAPoints}</td>
@@ -52,8 +58,16 @@ export const LeaderboardTable = () => {
         <h3 className="text-xl font-bold mb-4">Best Group C Finishes</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {leaderboard.map((player) => (
-            <div key={`gc-${player.id}`} className="p-3 bg-white/5 rounded border border-white/10">
-              <div className="font-medium">{player.name}</div>
+            <div 
+              key={`gc-${player.id}`} 
+              className={`p-3 ${currentUser?.id === player.id ? 'bg-f1-red/20 border-f1-red/30' : 'bg-white/5 border-white/10'} rounded border`}
+            >
+              <div className="font-medium">
+                {player.name}
+                {currentUser?.id === player.id && (
+                  <span className="text-xs bg-f1-red/80 px-2 py-0.5 rounded ml-2">You</span>
+                )}
+              </div>
               <div className="text-sm text-gray-300">Best: {player.bestGroupCFinish}</div>
             </div>
           ))}
