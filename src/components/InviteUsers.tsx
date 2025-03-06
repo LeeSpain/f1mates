@@ -1,9 +1,12 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Send, Loader2, Check } from "lucide-react";
+import { useAuth } from '@/auth/AuthContext';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { db, sendInviteEmail, saveInvitation } from '@/lib/firebase';
 
 export const InviteUsers = () => {
   const [email, setEmail] = useState("");
@@ -11,8 +14,49 @@ export const InviteUsers = () => {
   const [sentInvites, setSentInvites] = useState<string[]>([]);
   const [remainingInvites, setRemainingInvites] = useState(5);
   const { toast } = useToast();
+  const { currentUser } = useAuth();
+
+  useEffect(() => {
+    // Load user's previously sent invites
+    const loadInviteData = async () => {
+      if (!currentUser) return;
+      
+      try {
+        const userRef = doc(db, 'users', currentUser.uid);
+        const userDoc = await getDoc(userRef);
+        
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          // Get previously sent invites array, or create empty array if it doesn't exist
+          const previousInvites = userData.sentInvites || [];
+          
+          setSentInvites(previousInvites);
+          // Calculate remaining invites (default 5 total)
+          setRemainingInvites(Math.max(0, 5 - previousInvites.length));
+        }
+      } catch (error) {
+        console.error("Error loading invite data:", error);
+      }
+    };
+    
+    loadInviteData();
+  }, [currentUser]);
+
+  const generateInviteCode = () => {
+    // Generate a random 8-character invite code
+    return Math.random().toString(36).substring(2, 10).toUpperCase();
+  };
 
   const handleInvite = async () => {
+    if (!currentUser) {
+      toast({
+        title: "Authentication required",
+        description: "You must be logged in to invite users.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     if (!email || !email.includes('@')) {
       toast({
         title: "Invalid email",
@@ -42,20 +86,47 @@ export const InviteUsers = () => {
 
     setIsLoading(true);
 
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    // In a real app, you would send an actual invitation email here
-    setSentInvites([...sentInvites, email]);
-    setRemainingInvites(prev => prev - 1);
-    setEmail("");
-    
-    toast({
-      title: "Invitation sent!",
-      description: `An invitation has been sent to ${email}`,
-    });
-    
-    setIsLoading(false);
+    try {
+      // Generate a unique invite code
+      const inviteCode = generateInviteCode();
+      
+      // Save the invitation to Firestore
+      await saveInvitation(currentUser.uid, email, inviteCode);
+      
+      // Send the email
+      const emailSent = await sendInviteEmail(
+        email, 
+        currentUser.name || "An F1 Mate", 
+        inviteCode
+      );
+      
+      if (emailSent) {
+        // Update local state
+        setSentInvites(prev => [...prev, email]);
+        setRemainingInvites(prev => prev - 1);
+        setEmail("");
+        
+        toast({
+          title: "Invitation sent!",
+          description: `An invitation has been sent to ${email}`,
+        });
+      } else {
+        toast({
+          title: "Email failed",
+          description: "The invitation was saved but we couldn't send the email. Try again later.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error during invitation process:", error);
+      toast({
+        title: "Invitation failed",
+        description: "There was an error sending the invitation. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

@@ -8,8 +8,8 @@ import {
   onAuthStateChanged,
   updateProfile
 } from 'firebase/auth';
-import { doc, getDoc, setDoc, collection, getDocs } from 'firebase/firestore';
-import { auth, db } from '@/lib/firebase';
+import { doc, getDoc, setDoc, collection, getDocs, query, where, orderBy, limit } from 'firebase/firestore';
+import { auth, db, createRaceCollection } from '@/lib/firebase';
 import { PlayerStanding } from '@/data/mockData';
 
 // Define the structure for a player/user
@@ -17,6 +17,8 @@ export interface User extends Omit<PlayerStanding, 'isCurrentLeader' | 'isOnHotS
   email: string;
   avatar: string;
   isAdmin?: boolean;
+  uid?: string; // Firebase UID
+  sentInvites?: string[]; // Emails of people invited
 }
 
 // Define the auth context structure
@@ -42,18 +44,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Initialize race data
+  useEffect(() => {
+    createRaceCollection().catch(error => {
+      console.error("Error creating race collection:", error);
+    });
+  }, []);
+
   // Set up the auth state listener
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         // Fetch user data from Firestore
         try {
-          const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
+          const userRef = doc(db, 'users', firebaseUser.uid);
+          const userDoc = await getDoc(userRef);
           
           if (userDoc.exists()) {
             const userData = userDoc.data() as Omit<User, 'email' | 'avatar'>;
             setCurrentUser({
               ...userData,
+              uid: firebaseUser.uid, // Include the UID in the user object
               email: firebaseUser.email || '',
               avatar: firebaseUser.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${firebaseUser.displayName || 'User'}`,
             });
@@ -69,10 +80,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               totalPoints: 0,
               weeklyWins: 0,
               bestGroupCFinish: 'N/A',
-              isAdmin: false
+              isAdmin: false,
+              sentInvites: [], // Initialize empty sent invites array
+              uid: firebaseUser.uid
             };
             
-            await setDoc(doc(db, 'users', firebaseUser.uid), defaultUserData);
+            await setDoc(userRef, defaultUserData);
             
             setCurrentUser({
               ...defaultUserData,
@@ -114,7 +127,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         totalPoints: 0,
         weeklyWins: 0,
         bestGroupCFinish: 'N/A',
-        isAdmin: false
+        isAdmin: false,
+        sentInvites: [],
+        uid: userCredential.user.uid
       };
       
       await setDoc(doc(db, 'users', userCredential.user.uid), defaultUserData);
@@ -159,32 +174,29 @@ export const useAuth = () => useContext(AuthContext);
 // Function to get all players (for leaderboard)
 export const getAllPlayers = async (): Promise<(User & { isCurrentLeader: boolean; isOnHotStreak: boolean })[]> => {
   try {
-    const usersSnapshot = await getDocs(collection(db, 'users'));
+    const usersRef = collection(db, 'users');
+    // Create a query to exclude admin users and sort by total points
+    const usersQuery = query(
+      usersRef, 
+      where("isAdmin", "==", false), 
+      orderBy("totalPoints", "desc")
+    );
+    
+    const usersSnapshot = await getDocs(usersQuery);
     
     const players: (User & { isCurrentLeader: boolean; isOnHotStreak: boolean })[] = [];
     
-    usersSnapshot.forEach(doc => {
+    usersSnapshot.forEach((doc, index) => {
       const userData = doc.data() as Omit<User, 'email' | 'avatar'>;
-      
-      // Skip admin users
-      if (userData.isAdmin) return;
       
       players.push({
         ...userData,
         email: '', // Don't expose emails in leaderboard
         avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${userData.name}`,
-        isCurrentLeader: false, // Will be calculated below
+        isCurrentLeader: index === 0, // First player in the sorted list is the leader
         isOnHotStreak: userData.weeklyWins > 1 // Consider players with more than 1 win on a hot streak
       });
     });
-    
-    // Sort by total points
-    players.sort((a, b) => b.totalPoints - a.totalPoints);
-    
-    // Mark the top player as leader
-    if (players.length > 0) {
-      players[0].isCurrentLeader = true;
-    }
     
     return players;
   } catch (error) {
