@@ -5,12 +5,15 @@ import { Button } from '@/components/ui/button';
 import { Trophy, Flag, Users, ArrowRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/auth/AuthContext';
+import { Input } from '@/components/ui/input';
 
 const Index = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { currentUser, login } = useAuth();
+  const { currentUser, login, register } = useAuth();
   
+  const [isLoginMode, setIsLoginMode] = useState(true);
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -23,38 +26,74 @@ const Index = () => {
     }
   }, [currentUser, navigate]);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
     
     try {
-      const success = await login(email, password);
+      let success = false;
       
-      if (success) {
-        toast({
-          title: `Welcome back, ${email.split('@')[0]}!`,
-          description: "You've successfully logged in.",
-        });
-        navigate('/dashboard');
+      if (isLoginMode) {
+        success = await login(email, password);
+        if (success) {
+          toast({
+            title: `Welcome back!`,
+            description: "You've successfully logged in.",
+          });
+          navigate('/dashboard');
+        } else {
+          setError('Invalid email or password');
+          toast({
+            title: "Login failed",
+            description: "Invalid email or password.",
+            variant: "destructive",
+          });
+        }
       } else {
-        setError('Invalid email or password');
-        toast({
-          title: "Login failed",
-          description: "Invalid email or password.",
-          variant: "destructive",
-        });
+        // Registration
+        if (!name.trim()) {
+          setError('Name is required');
+          toast({
+            title: "Registration failed",
+            description: "Name is required.",
+            variant: "destructive",
+          });
+          setIsLoading(false);
+          return;
+        }
+        
+        success = await register(name, email, password);
+        if (success) {
+          toast({
+            title: "Registration successful!",
+            description: "Your account has been created.",
+          });
+          navigate('/dashboard');
+        } else {
+          setError('Registration failed. Please try again.');
+          toast({
+            title: "Registration failed",
+            description: "Please try a different email or check your information.",
+            variant: "destructive",
+          });
+        }
       }
     } catch (err) {
-      setError('An error occurred during login');
+      setError('An error occurred');
       toast({
-        title: "Login error",
+        title: "Error",
         description: "An unexpected error occurred.",
         variant: "destructive",
       });
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const toggleMode = () => {
+    setIsLoginMode(!isLoginMode);
+    setError('');
   };
 
   return (
@@ -101,15 +140,32 @@ const Index = () => {
           
           <div id="auth-section" className="lg:w-1/2 animate-slide-from-right">
             <div className="glassmorphism rounded-xl p-8 max-w-md mx-auto">
-              <h2 className="text-2xl font-bold mb-6 text-center">Login</h2>
+              <h2 className="text-2xl font-bold mb-6 text-center">
+                {isLoginMode ? 'Login' : 'Register'}
+              </h2>
               
-              <form onSubmit={handleLogin} className="space-y-4">
+              <form onSubmit={handleAuth} className="space-y-4">
+                {!isLoginMode && (
+                  <div>
+                    <label className="block text-sm font-medium mb-1" htmlFor="name">Name</label>
+                    <Input 
+                      type="text" 
+                      id="name"
+                      className="w-full bg-white/10 border border-white/20 text-white"
+                      placeholder="Your Name"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      required={!isLoginMode}
+                    />
+                  </div>
+                )}
+                
                 <div>
                   <label className="block text-sm font-medium mb-1" htmlFor="email">Email</label>
-                  <input 
+                  <Input 
                     type="email" 
                     id="email"
-                    className="w-full p-2 rounded bg-white/10 border border-white/20 text-white"
+                    className="w-full bg-white/10 border border-white/20 text-white"
                     placeholder="your@email.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -119,10 +175,10 @@ const Index = () => {
                 
                 <div>
                   <label className="block text-sm font-medium mb-1" htmlFor="password">Password</label>
-                  <input 
+                  <Input 
                     type="password" 
                     id="password"
-                    className="w-full p-2 rounded bg-white/10 border border-white/20 text-white"
+                    className="w-full bg-white/10 border border-white/20 text-white"
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -134,23 +190,39 @@ const Index = () => {
                   <div className="text-red-400 text-sm">{error}</div>
                 )}
                 
-                <div className="flex items-center">
-                  <input 
-                    type="checkbox" 
-                    id="remember" 
-                    className="rounded mr-2"
-                    defaultChecked
-                  />
-                  <label htmlFor="remember" className="text-sm">Stay logged in</label>
-                </div>
+                {isLoginMode && (
+                  <div className="flex items-center">
+                    <input 
+                      type="checkbox" 
+                      id="remember" 
+                      className="rounded mr-2"
+                      defaultChecked
+                    />
+                    <label htmlFor="remember" className="text-sm">Stay logged in</label>
+                  </div>
+                )}
                 
                 <Button 
                   className="w-full bg-f1-red hover:bg-f1-red/90"
                   type="submit"
                   disabled={isLoading}
                 >
-                  {isLoading ? 'Logging in...' : 'Login'}
+                  {isLoading 
+                    ? (isLoginMode ? 'Logging in...' : 'Registering...') 
+                    : (isLoginMode ? 'Login' : 'Register')}
                 </Button>
+                
+                <div className="text-center mt-4">
+                  <button 
+                    type="button"
+                    className="text-f1-red hover:underline"
+                    onClick={toggleMode}
+                  >
+                    {isLoginMode 
+                      ? "Don't have an account? Register" 
+                      : "Already have an account? Login"}
+                  </button>
+                </div>
               </form>
             </div>
           </div>
