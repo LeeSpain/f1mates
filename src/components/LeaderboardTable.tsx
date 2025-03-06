@@ -1,11 +1,35 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Crown, Flame } from 'lucide-react';
-import { getAllPlayers, useAuth } from '@/auth/AuthContext';
+import { getAllPlayers, useAuth, User } from '@/auth/AuthContext';
 
 export const LeaderboardTable = () => {
   const { currentUser } = useAuth();
-  const leaderboard = getAllPlayers();
+  const [leaderboard, setLeaderboard] = useState<(User & { isCurrentLeader: boolean; isOnHotStreak: boolean })[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchPlayers = async () => {
+      try {
+        const players = await getAllPlayers();
+        setLeaderboard(players);
+      } catch (error) {
+        console.error("Error fetching leaderboard data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPlayers();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center p-8">
+        <p className="text-gray-400">Loading leaderboard data...</p>
+      </div>
+    );
+  }
   
   return (
     <div className="space-y-6">
