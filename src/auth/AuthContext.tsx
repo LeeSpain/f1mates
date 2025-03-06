@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { 
   User as FirebaseUser, 
@@ -7,40 +8,9 @@ import {
   onAuthStateChanged,
   updateProfile
 } from 'firebase/auth';
-import { 
-  doc, 
-  getDoc, 
-  setDoc, 
-  collection, 
-  getDocs, 
-  query, 
-  where, 
-  orderBy, 
-  limit, 
-  QueryDocumentSnapshot, 
-  DocumentData 
-} from 'firebase/firestore';
-import { auth, db, createRaceCollection } from '@/lib/firebase';
-import { PlayerStanding } from '@/data/mockData';
-import { isAllowedAdmin } from '@/utils/adminUtils';
-
-// Define the structure for a player/user
-export interface User extends Omit<PlayerStanding, 'isCurrentLeader' | 'isOnHotStreak'> {
-  email: string;
-  avatar: string;
-  isAdmin?: boolean;
-  uid?: string; // Firebase UID
-  sentInvites?: string[]; // Emails of people invited
-}
-
-// Define the auth context structure
-interface AuthContextType {
-  currentUser: User | null;
-  login: (email: string, password: string) => Promise<boolean>;
-  logout: () => void;
-  register: (name: string, email: string, password: string) => Promise<boolean>;
-  isLoading: boolean;
-}
+import { auth, createRaceCollection } from '@/lib/firebase';
+import { getUserDocument, createUserDocument } from './userService';
+import { User, AuthContextType } from './types';
 
 // Create the auth context
 const AuthContext = createContext<AuthContextType>({
@@ -69,42 +39,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (firebaseUser) {
         // Fetch user data from Firestore
         try {
-          const userRef = doc(db, 'users', firebaseUser.uid);
-          const userDoc = await getDoc(userRef);
-          
-          if (userDoc.exists()) {
-            const userData = userDoc.data() as Omit<User, 'email' | 'avatar'>;
-            setCurrentUser({
-              ...userData,
-              uid: firebaseUser.uid, // Include the UID in the user object
-              email: firebaseUser.email || '',
-              avatar: firebaseUser.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${firebaseUser.displayName || 'User'}`,
-            });
-          } else {
-            // Create default user document if it doesn't exist
-            const defaultUserData: Omit<User, 'email' | 'avatar'> = {
-              id: parseInt(firebaseUser.uid.substring(0, 8), 16) % 1000, // Generate a numerical ID from UID
-              name: firebaseUser.displayName || 'User',
-              groupAPoints: 0,
-              groupBPoints: 0,
-              groupCPoints: 0,
-              bonusPoints: 0,
-              totalPoints: 0,
-              weeklyWins: 0,
-              bestGroupCFinish: 'N/A',
-              isAdmin: false,
-              sentInvites: [], // Initialize empty sent invites array
-              uid: firebaseUser.uid
-            };
-            
-            await setDoc(userRef, defaultUserData);
-            
-            setCurrentUser({
-              ...defaultUserData,
-              email: firebaseUser.email || '',
-              avatar: firebaseUser.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${firebaseUser.displayName || 'User'}`,
-            });
-          }
+          const user = await getUserDocument(
+            firebaseUser.uid,
+            firebaseUser.email,
+            firebaseUser.displayName,
+            firebaseUser.photoURL
+          );
+          setCurrentUser(user);
         } catch (error) {
           console.error("Error fetching user data:", error);
         }
@@ -128,26 +69,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         photoURL: `https://api.dicebear.com/7.x/avataaars/svg?seed=${name}`
       });
       
-      // Check if this email should have admin privileges
-      const shouldBeAdmin = isAllowedAdmin(email);
-      
       // Create user document in Firestore
-      const defaultUserData: Omit<User, 'email' | 'avatar'> = {
-        id: parseInt(userCredential.user.uid.substring(0, 8), 16) % 1000,
-        name: name,
-        groupAPoints: 0,
-        groupBPoints: 0,
-        groupCPoints: 0,
-        bonusPoints: 0,
-        totalPoints: 0,
-        weeklyWins: 0,
-        bestGroupCFinish: 'N/A',
-        isAdmin: shouldBeAdmin, // Set admin status based on email
-        sentInvites: [],
-        uid: userCredential.user.uid
-      };
-      
-      await setDoc(doc(db, 'users', userCredential.user.uid), defaultUserData);
+      await createUserDocument(userCredential.user.uid, name, email);
       
       return true;
     } catch (error) {
@@ -186,37 +109,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 // Custom hook to use the auth context
 export const useAuth = () => useContext(AuthContext);
 
-// Function to get all players (for leaderboard)
-export const getAllPlayers = async (): Promise<(User & { isCurrentLeader: boolean; isOnHotStreak: boolean })[]> => {
-  try {
-    const usersRef = collection(db, 'users');
-    // Create a query to exclude admin users and sort by total points
-    const usersQuery = query(
-      usersRef, 
-      where("isAdmin", "==", false), 
-      orderBy("totalPoints", "desc")
-    );
-    
-    const usersSnapshot = await getDocs(usersQuery);
-    
-    const players: (User & { isCurrentLeader: boolean; isOnHotStreak: boolean })[] = [];
-    
-    usersSnapshot.forEach((doc: QueryDocumentSnapshot<DocumentData>) => {
-      const userData = doc.data() as Omit<User, 'email' | 'avatar'>;
-      const index = players.length; // Get the current index for determining leader
-      
-      players.push({
-        ...userData,
-        email: '', // Don't expose emails in leaderboard
-        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${userData.name}`,
-        isCurrentLeader: index === 0, // First player in the sorted list is the leader
-        isOnHotStreak: userData.weeklyWins > 1 // Consider players with more than 1 win on a hot streak
-      });
-    });
-    
-    return players;
-  } catch (error) {
-    console.error("Error fetching players:", error);
-    return [];
-  }
-};
+// Re-export the playerService function for external use
+export { getAllPlayers } from './userService';
+export type { User } from './types';
