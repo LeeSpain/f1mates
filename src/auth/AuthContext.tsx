@@ -22,6 +22,7 @@ import {
 } from 'firebase/firestore';
 import { auth, db, createRaceCollection } from '@/lib/firebase';
 import { PlayerStanding } from '@/data/mockData';
+import { isAllowedAdmin } from '@/utils/adminUtils';
 
 // Define the structure for a player/user
 export interface User extends Omit<PlayerStanding, 'isCurrentLeader' | 'isOnHotStreak'> {
@@ -127,6 +128,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         photoURL: `https://api.dicebear.com/7.x/avataaars/svg?seed=${name}`
       });
       
+      // Check if this email should have admin privileges
+      const shouldBeAdmin = isAllowedAdmin(email);
+      
       // Create user document in Firestore
       const defaultUserData: Omit<User, 'email' | 'avatar'> = {
         id: parseInt(userCredential.user.uid.substring(0, 8), 16) % 1000,
@@ -138,7 +142,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         totalPoints: 0,
         weeklyWins: 0,
         bestGroupCFinish: 'N/A',
-        isAdmin: false,
+        isAdmin: shouldBeAdmin, // Set admin status based on email
         sentInvites: [],
         uid: userCredential.user.uid
       };
