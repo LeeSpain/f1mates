@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./auth/AuthContext";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
+import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,23 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+// Admin protected route component
+const AdminRoute = ({ children }: { children: React.ReactNode }) => {
+  const { currentUser, isLoading } = useAuth();
+  
+  if (isLoading) {
+    return <div className="flex h-screen items-center justify-center bg-gradient-to-b from-f1-darkBlue to-black">
+      <p className="text-white text-xl">Loading...</p>
+    </div>;
+  }
+  
+  if (!currentUser || !currentUser.isAdmin) {
+    return <Navigate to="/dashboard" replace />;
+  }
+  
+  return <>{children}</>;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -41,6 +59,11 @@ const App = () => (
               <ProtectedRoute>
                 <Dashboard />
               </ProtectedRoute>
+            } />
+            <Route path="/admin" element={
+              <AdminRoute>
+                <AdminDashboard />
+              </AdminRoute>
             } />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

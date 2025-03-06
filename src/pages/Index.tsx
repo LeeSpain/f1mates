@@ -96,27 +96,6 @@ const Index = () => {
                   </div>
                 </div>
               </div>
-              
-              <div className="glassmorphism rounded-xl p-6">
-                <h2 className="text-2xl font-bold mb-4">Admin Access</h2>
-                <p className="mb-4">
-                  To access the admin dashboard, use the following credentials:
-                </p>
-                <div className="space-y-3">
-                  <div className="flex items-start gap-3">
-                    <div className="bg-f1-red rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">👤</div>
-                    <p><strong>Email:</strong> admin@f1mate.com</p>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <div className="bg-f1-red rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">🔑</div>
-                    <p><strong>Password:</strong> admin123</p>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <div className="bg-f1-red rounded-full w-8 h-8 flex items-center justify-center shrink-0 font-bold">ℹ️</div>
-                    <p>The admin dashboard provides access to manage races, drivers, and user accounts.</p>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
           

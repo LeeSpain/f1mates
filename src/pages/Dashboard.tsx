@@ -69,6 +69,14 @@ const Dashboard = () => {
             <span className="font-medium">
               {currentUser?.name}'s Points: {currentUser?.totalPoints}
             </span>
+            {currentUser?.isAdmin && (
+              <button 
+                onClick={() => navigate('/admin')}
+                className="px-4 py-1 rounded bg-f1-silver/20 hover:bg-f1-silver/30 transition-colors"
+              >
+                Admin Panel
+              </button>
+            )}
             <button 
               onClick={handleLogout}
               className="px-4 py-1 rounded bg-f1-red hover:bg-f1-red/90 transition-colors"
