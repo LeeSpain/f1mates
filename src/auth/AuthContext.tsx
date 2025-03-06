@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { 
   User as FirebaseUser, 
@@ -8,7 +7,19 @@ import {
   onAuthStateChanged,
   updateProfile
 } from 'firebase/auth';
-import { doc, getDoc, setDoc, collection, getDocs, query, where, orderBy, limit } from 'firebase/firestore';
+import { 
+  doc, 
+  getDoc, 
+  setDoc, 
+  collection, 
+  getDocs, 
+  query, 
+  where, 
+  orderBy, 
+  limit, 
+  QueryDocumentSnapshot, 
+  DocumentData 
+} from 'firebase/firestore';
 import { auth, db, createRaceCollection } from '@/lib/firebase';
 import { PlayerStanding } from '@/data/mockData';
 
@@ -186,8 +197,9 @@ export const getAllPlayers = async (): Promise<(User & { isCurrentLeader: boolea
     
     const players: (User & { isCurrentLeader: boolean; isOnHotStreak: boolean })[] = [];
     
-    usersSnapshot.forEach((doc, index) => {
+    usersSnapshot.forEach((doc: QueryDocumentSnapshot<DocumentData>) => {
       const userData = doc.data() as Omit<User, 'email' | 'avatar'>;
+      const index = players.length; // Get the current index for determining leader
       
       players.push({
         ...userData,
