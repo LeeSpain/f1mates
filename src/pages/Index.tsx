@@ -6,7 +6,6 @@ import { Trophy, Flag, Users, ArrowRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/auth/AuthContext';
 import { Input } from '@/components/ui/input';
-import TestAccounts from '@/components/TestAccounts';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -107,12 +106,6 @@ const Index = () => {
     setError('');
   };
 
-  const useTestAccount = (testEmail: string, testPassword: string) => {
-    setEmail(testEmail);
-    setPassword(testPassword);
-    setIsLoginMode(true); // Switch to login mode
-  };
-
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-f1-darkBlue to-black text-white">
       {/* Racing line animation */}
@@ -152,9 +145,6 @@ const Index = () => {
                   </div>
                 </div>
               </div>
-              
-              {/* Test Accounts Card */}
-              <TestAccounts onUseAccount={useTestAccount} />
             </div>
           </div>
           

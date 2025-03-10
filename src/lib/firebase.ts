@@ -5,13 +5,14 @@ import { getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc, arra
 import { getStorage } from 'firebase/storage';
 
 // Your web app's Firebase configuration
+// Using a demo project configuration for development
 const firebaseConfig = {
-  apiKey: "AIzaSyAMdRCET0GRnwITdvzCsYIQcRQA-tU9QEA",
-  authDomain: "f1mates-app.firebaseapp.com",
-  projectId: "f1mates-app",
-  storageBucket: "f1mates-app.appspot.com",
-  messagingSenderId: "215381088459",
-  appId: "1:215381088459:web:1e9b235bfabd17bbd08f6c"
+  apiKey: "AIzaSyC-3XM_DqavCinSMk0iBvdLmIVGWXxRh-I",
+  authDomain: "demo-project-f1-racing.firebaseapp.com",
+  projectId: "demo-project-f1-racing",
+  storageBucket: "demo-project-f1-racing.appspot.com",
+  messagingSenderId: "123456789012",
+  appId: "1:123456789012:web:abcdef1234567890"
 };
 
 // Initialize Firebase

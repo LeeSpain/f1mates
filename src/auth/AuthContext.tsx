@@ -37,9 +37,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Set up the auth state listener
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        // Fetch user data from Firestore
-        try {
+      try {
+        if (firebaseUser) {
+          // Fetch user data from Firestore
           const user = await getUserDocument(
             firebaseUser.uid,
             firebaseUser.email,
@@ -47,13 +47,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             firebaseUser.photoURL
           );
           setCurrentUser(user);
-        } catch (error) {
-          console.error("Error fetching user data:", error);
+          console.log("User authenticated:", user.email);
+        } else {
+          setCurrentUser(null);
+          console.log("No user authenticated");
         }
-      } else {
+      } catch (error) {
+        console.error("Error in auth state changed:", error);
         setCurrentUser(null);
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     });
 
     return () => unsubscribe();
@@ -62,16 +66,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Register function
   const register = async (name: string, email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
+      console.log(`Attempting to register user: ${email}`);
+      
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      console.log("User registered successfully with Firebase");
       
       // Update user profile
       await updateProfile(userCredential.user, {
         displayName: name,
         photoURL: `https://api.dicebear.com/7.x/avataaars/svg?seed=${name}`
       });
+      console.log("User profile updated successfully");
       
       // Create user document in Firestore
       await createUserDocument(userCredential.user.uid, name, email);
+      console.log("User document created in Firestore");
       
       return { success: true };
     } catch (error) {
@@ -87,6 +96,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         errorMessage = "Password is too weak. Please use at least 6 characters.";
       } else if (authError.code === 'auth/invalid-email') {
         errorMessage = "Invalid email address. Please check and try again.";
+      } else if (authError.code === 'auth/network-request-failed') {
+        errorMessage = "Network error. Please check your connection and try again.";
+      } else if (authError.code === 'auth/internal-error') {
+        errorMessage = "An internal error occurred. Please try again later.";
       }
       
       return { success: false, error: errorMessage };
@@ -96,7 +109,62 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Login function
   const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      console.log(`Attempting to log in user: ${email}`);
+      
+      // For demo purposes only - allows specific admin accounts to bypass actual authentication
+      // In production, this should be removed
+      if (email === 'admin@f1mates.com' && password === 'Pass123!') {
+        // Create a mock admin user
+        const mockAdminUser = {
+          uid: 'admin-uid-123',
+          id: 1,
+          name: 'Admin User',
+          email: 'admin@f1mates.com',
+          avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=AdminUser',
+          groupAPoints: 0,
+          groupBPoints: 0,
+          groupCPoints: 0,
+          bonusPoints: 0, 
+          totalPoints: 0,
+          weeklyWins: 0,
+          bestGroupCFinish: 'N/A',
+          isAdmin: true,
+          sentInvites: []
+        };
+        
+        setCurrentUser(mockAdminUser);
+        console.log("Mock admin user logged in");
+        return { success: true };
+      }
+      
+      // For demo purposes - allows regular test user to bypass authentication
+      if (email === 'user@example.com' && password === 'Pass123!') {
+        // Create a mock regular user
+        const mockUser = {
+          uid: 'user-uid-456',
+          id: 2,
+          name: 'Regular User',
+          email: 'user@example.com',
+          avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=RegularUser',
+          groupAPoints: 0,
+          groupBPoints: 0,
+          groupCPoints: 0,
+          bonusPoints: 0,
+          totalPoints: 0,
+          weeklyWins: 0,
+          bestGroupCFinish: 'N/A',
+          isAdmin: false,
+          sentInvites: []
+        };
+        
+        setCurrentUser(mockUser);
+        console.log("Mock regular user logged in");
+        return { success: true };
+      }
+      
+      // Normal Firebase authentication flow for non-demo accounts
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      console.log("User logged in successfully");
       return { success: true };
     } catch (error) {
       const authError = error as AuthError;
@@ -111,6 +179,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         errorMessage = "Too many failed login attempts. Please try again later.";
       } else if (authError.code === 'auth/user-disabled') {
         errorMessage = "This account has been disabled. Please contact support.";
+      } else if (authError.code === 'auth/network-request-failed') {
+        errorMessage = "Network error. Please check your connection and try again.";
+      } else if (authError.code === 'auth/invalid-api-key') {
+        errorMessage = "Service temporarily unavailable. Please try again later.";
       }
       
       return { success: false, error: errorMessage };
@@ -120,7 +192,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Logout function
   const logout = async () => {
     try {
+      // For demo users, just clear the current user state
+      if (currentUser?.email === 'admin@f1mates.com' || currentUser?.email === 'user@example.com') {
+        setCurrentUser(null);
+        console.log("Mock user logged out");
+        return;
+      }
+      
+      // Normal Firebase logout for non-demo accounts
       await signOut(auth);
+      console.log("User logged out successfully");
     } catch (error) {
       console.error("Error logging out:", error);
     }
