@@ -6,7 +6,8 @@ import {
   signInWithEmailAndPassword, 
   signOut, 
   onAuthStateChanged,
-  updateProfile
+  updateProfile,
+  AuthError
 } from 'firebase/auth';
 import { auth, createRaceCollection } from '@/lib/firebase';
 import { getUserDocument, createUserDocument } from './userService';
@@ -15,9 +16,9 @@ import { User, AuthContextType } from './types';
 // Create the auth context
 const AuthContext = createContext<AuthContextType>({
   currentUser: null,
-  login: async () => false,
-  logout: () => {},
-  register: async () => false,
+  login: async () => ({ success: false, error: 'Context not initialized' }),
+  logout: async () => {},
+  register: async () => ({ success: false, error: 'Context not initialized' }),
   isLoading: true,
 });
 
@@ -59,7 +60,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   // Register function
-  const register = async (name: string, email: string, password: string): Promise<boolean> => {
+  const register = async (name: string, email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       
@@ -72,21 +73,47 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Create user document in Firestore
       await createUserDocument(userCredential.user.uid, name, email);
       
-      return true;
+      return { success: true };
     } catch (error) {
-      console.error("Error registering user:", error);
-      return false;
+      const authError = error as AuthError;
+      console.error("Error registering user:", authError);
+      
+      let errorMessage = "Failed to register. Please try again.";
+      
+      // Map Firebase errors to user-friendly messages
+      if (authError.code === 'auth/email-already-in-use') {
+        errorMessage = "This email is already in use. Please try another one.";
+      } else if (authError.code === 'auth/weak-password') {
+        errorMessage = "Password is too weak. Please use at least 6 characters.";
+      } else if (authError.code === 'auth/invalid-email') {
+        errorMessage = "Invalid email address. Please check and try again.";
+      }
+      
+      return { success: false, error: errorMessage };
     }
   };
 
   // Login function
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      return true;
+      return { success: true };
     } catch (error) {
-      console.error("Error logging in:", error);
-      return false;
+      const authError = error as AuthError;
+      console.error("Error logging in:", authError);
+      
+      let errorMessage = "Login failed. Please check your email and password.";
+      
+      // Map Firebase errors to user-friendly messages
+      if (authError.code === 'auth/user-not-found' || authError.code === 'auth/wrong-password') {
+        errorMessage = "Invalid email or password. Please try again.";
+      } else if (authError.code === 'auth/too-many-requests') {
+        errorMessage = "Too many failed login attempts. Please try again later.";
+      } else if (authError.code === 'auth/user-disabled') {
+        errorMessage = "This account has been disabled. Please contact support.";
+      }
+      
+      return { success: false, error: errorMessage };
     }
   };
 

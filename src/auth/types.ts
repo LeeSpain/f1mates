@@ -13,8 +13,8 @@ export interface User extends Omit<PlayerStanding, 'isCurrentLeader' | 'isOnHotS
 // Define the auth context structure
 export interface AuthContextType {
   currentUser: User | null;
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
-  register: (name: string, email: string, password: string) => Promise<boolean>;
+  register: (name: string, email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   isLoading: boolean;
 }

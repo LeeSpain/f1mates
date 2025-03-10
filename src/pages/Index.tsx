@@ -6,6 +6,7 @@ import { Trophy, Flag, Users, ArrowRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/auth/AuthContext';
 import { Input } from '@/components/ui/input';
+import TestAccounts from '@/components/TestAccounts';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -32,21 +33,19 @@ const Index = () => {
     setIsLoading(true);
     
     try {
-      let success = false;
-      
       if (isLoginMode) {
-        success = await login(email, password);
-        if (success) {
+        const result = await login(email, password);
+        if (result.success) {
           toast({
             title: `Welcome back!`,
             description: "You've successfully logged in.",
           });
           navigate('/dashboard');
         } else {
-          setError('Invalid email or password');
+          setError(result.error || 'Invalid email or password');
           toast({
             title: "Login failed",
-            description: "Invalid email or password.",
+            description: result.error || "Invalid email or password.",
             variant: "destructive",
           });
         }
@@ -63,18 +62,30 @@ const Index = () => {
           return;
         }
         
-        success = await register(name, email, password);
-        if (success) {
+        // Password validation
+        if (password.length < 6) {
+          setError('Password must be at least 6 characters');
+          toast({
+            title: "Registration failed",
+            description: "Password must be at least 6 characters.",
+            variant: "destructive",
+          });
+          setIsLoading(false);
+          return;
+        }
+        
+        const result = await register(name, email, password);
+        if (result.success) {
           toast({
             title: "Registration successful!",
             description: "Your account has been created.",
           });
           navigate('/dashboard');
         } else {
-          setError('Registration failed. Please try again.');
+          setError(result.error || 'Registration failed. Please try again.');
           toast({
             title: "Registration failed",
-            description: "Please try a different email or check your information.",
+            description: result.error || "Please try a different email or check your information.",
             variant: "destructive",
           });
         }
@@ -94,6 +105,12 @@ const Index = () => {
   const toggleMode = () => {
     setIsLoginMode(!isLoginMode);
     setError('');
+  };
+
+  const useTestAccount = (testEmail: string, testPassword: string) => {
+    setEmail(testEmail);
+    setPassword(testPassword);
+    setIsLoginMode(true); // Switch to login mode
   };
 
   return (
@@ -135,6 +152,9 @@ const Index = () => {
                   </div>
                 </div>
               </div>
+              
+              {/* Test Accounts Card */}
+              <TestAccounts onUseAccount={useTestAccount} />
             </div>
           </div>
           
@@ -184,6 +204,9 @@ const Index = () => {
                     onChange={(e) => setPassword(e.target.value)}
                     required
                   />
+                  {!isLoginMode && (
+                    <p className="text-xs text-gray-400 mt-1">Password must be at least 6 characters</p>
+                  )}
                 </div>
                 
                 {error && (
