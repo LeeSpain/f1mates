@@ -1,18 +1,41 @@
 
 import { initializeApp } from 'firebase/app';
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile, User } from 'firebase/auth';
-import { getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc, arrayUnion, query, where, Timestamp } from 'firebase/firestore';
+import { 
+  getAuth, 
+  createUserWithEmailAndPassword, 
+  signInWithEmailAndPassword, 
+  signOut, 
+  updateProfile,
+  sendEmailVerification,
+  sendPasswordResetEmail,
+  User 
+} from 'firebase/auth';
+import { 
+  getFirestore, 
+  collection, 
+  doc, 
+  getDoc, 
+  getDocs, 
+  setDoc, 
+  updateDoc, 
+  arrayUnion, 
+  query, 
+  where, 
+  Timestamp,
+  addDoc,
+  serverTimestamp
+} from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 
 // Your web app's Firebase configuration
 // Using a demo project configuration for development
 const firebaseConfig = {
-  apiKey: "AIzaSyC-3XM_DqavCinSMk0iBvdLmIVGWXxRh-I",
-  authDomain: "demo-project-f1-racing.firebaseapp.com",
-  projectId: "demo-project-f1-racing",
-  storageBucket: "demo-project-f1-racing.appspot.com",
-  messagingSenderId: "123456789012",
-  appId: "1:123456789012:web:abcdef1234567890"
+  apiKey: "AIzaSyBnJGm_7Qx7dHGXVBPAT5zKSLq0v1p8QMI",
+  authDomain: "f1mates-app.firebaseapp.com",
+  projectId: "f1mates-app",
+  storageBucket: "f1mates-app.appspot.com",
+  messagingSenderId: "346871217397",
+  appId: "1:346871217397:web:7ec0e16578e3baf5fbf32d"
 };
 
 // Initialize Firebase
@@ -20,6 +43,27 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
+
+// Firebase Auth helper functions
+const sendVerificationEmail = async (user: User) => {
+  try {
+    await sendEmailVerification(user);
+    return true;
+  } catch (error) {
+    console.error("Error sending verification email:", error);
+    return false;
+  }
+};
+
+const sendPasswordReset = async (email: string) => {
+  try {
+    await sendPasswordResetEmail(auth, email);
+    return true;
+  } catch (error) {
+    console.error("Error sending password reset:", error);
+    return false;
+  }
+};
 
 // Firebase DB helper functions
 const createRaceCollection = async () => {
@@ -95,6 +139,104 @@ const saveInvitation = async (senderUid: string, receiverEmail: string, inviteCo
   return inviteRef.id;
 };
 
+// Function to record user's driver selection
+const saveDriverSelection = async (
+  userId: string, 
+  driverGroup: string, 
+  driverId: string
+) => {
+  try {
+    const userRef = doc(db, 'users', userId);
+    
+    // Update the user's driver for the specified group
+    await updateDoc(userRef, {
+      [`driver${driverGroup}`]: driverId,
+      lastUpdated: serverTimestamp()
+    });
+    
+    return true;
+  } catch (error) {
+    console.error("Error saving driver selection:", error);
+    return false;
+  }
+};
+
+// Function to create a new prediction
+const savePrediction = async (
+  userId: string,
+  raceId: string,
+  prediction: string
+) => {
+  try {
+    const predictionRef = collection(db, 'predictions');
+    
+    await addDoc(predictionRef, {
+      userId,
+      raceId,
+      prediction,
+      status: 'pending',
+      createdAt: serverTimestamp()
+    });
+    
+    return true;
+  } catch (error) {
+    console.error("Error saving prediction:", error);
+    return false;
+  }
+};
+
+// Add driver and swap functionality
+const registerDriverSwap = async (
+  userId: string,
+  oldDriverId: string,
+  newDriverId: string,
+  driverGroup: 'B' | 'C'
+) => {
+  try {
+    // First check if user has swaps remaining (for Group B)
+    if (driverGroup === 'B') {
+      const userRef = doc(db, 'users', userId);
+      const userSnap = await getDoc(userRef);
+      
+      if (userSnap.exists()) {
+        const userData = userSnap.data();
+        const swapsRemaining = userData.swapsRemaining || 0;
+        
+        if (swapsRemaining <= 0) {
+          throw new Error("No swaps remaining");
+        }
+        
+        // Update swaps remaining
+        await updateDoc(userRef, {
+          swapsRemaining: swapsRemaining - 1
+        });
+      }
+    }
+    
+    // Record the swap
+    const swapRef = collection(db, 'swaps');
+    await addDoc(swapRef, {
+      userId,
+      oldDriverId,
+      newDriverId,
+      driverGroup,
+      date: serverTimestamp()
+    });
+    
+    // Update the user's driver
+    const userRef = doc(db, 'users', userId);
+    await updateDoc(userRef, {
+      [`driver${driverGroup}`]: newDriverId,
+      lastUpdated: serverTimestamp()
+    });
+    
+    return true;
+  } catch (error) {
+    console.error("Error registering driver swap:", error);
+    return false;
+  }
+};
+
 export { 
   app, 
   auth, 
@@ -102,5 +244,10 @@ export {
   storage, 
   createRaceCollection, 
   sendInviteEmail,
-  saveInvitation 
+  saveInvitation,
+  sendVerificationEmail,
+  sendPasswordReset,
+  saveDriverSelection,
+  savePrediction,
+  registerDriverSwap
 };

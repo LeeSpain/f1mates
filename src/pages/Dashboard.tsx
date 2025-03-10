@@ -10,13 +10,14 @@ import { RaceResults } from '@/components/RaceResults';
 import { SwapsAndPicks } from '@/components/SwapsAndPicks';
 import { ChatWidget } from '@/components/ChatWidget';
 import { RulesOverview } from '@/components/RulesOverview';
+import { HelpSection } from '@/components/HelpSection';
 import { useToast } from '@/hooks/use-toast';
-import { Driver, DriverGroup } from '@/types/driver';
-import { mySquad, allDrivers } from '@/data/mockData';
+import { Driver } from '@/types/driver';
+import { allDrivers } from '@/data/mockData';
 import { useAuth } from '@/auth/AuthContext';
 
 // Dashboard tabs
-type Tab = 'mySquad' | 'leaderboard' | 'raceResults' | 'swapsAndPicks' | 'chat' | 'rules';
+type Tab = 'mySquad' | 'leaderboard' | 'raceResults' | 'swapsAndPicks' | 'chat' | 'rules' | 'help';
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState<Tab>('mySquad');
@@ -27,10 +28,6 @@ const Dashboard = () => {
   // Handle logout
   const handleLogout = () => {
     logout();
-    toast({
-      title: "Logged out",
-      description: "You've been successfully logged out.",
-    });
     navigate('/');
   };
 
@@ -149,6 +146,13 @@ const Dashboard = () => {
                 <RulesOverview />
               </div>
             )}
+            
+            {/* Help Section */}
+            {activeTab === 'help' && (
+              <div className="space-y-6 animate-fade-in">
+                <HelpSection />
+              </div>
+            )}
           </main>
           
           {/* Right Sidebar - Chat Widget (only shown on larger screens) */}
@@ -164,9 +168,9 @@ const Dashboard = () => {
             Submit picks by Thursday before next race! 
             <button 
               className="ml-2 text-f1-red font-medium hover:underline"
-              onClick={() => setActiveTab('rules')}
+              onClick={() => setActiveTab('help')}
             >
-              View Rules
+              Need Help?
             </button>
           </p>
         </footer>

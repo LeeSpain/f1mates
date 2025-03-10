@@ -7,11 +7,13 @@ import {
   signOut, 
   onAuthStateChanged,
   updateProfile,
+  sendEmailVerification,
   AuthError
 } from 'firebase/auth';
-import { auth, createRaceCollection } from '@/lib/firebase';
+import { auth, createRaceCollection, sendVerificationEmail } from '@/lib/firebase';
 import { getUserDocument, createUserDocument } from './userService';
 import { User, AuthContextType } from './types';
+import { toast } from '@/hooks/use-toast';
 
 // Create the auth context
 const AuthContext = createContext<AuthContextType>({
@@ -78,9 +80,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
       console.log("User profile updated successfully");
       
+      // Send email verification
+      await sendVerificationEmail(userCredential.user);
+      console.log("Verification email sent");
+      
       // Create user document in Firestore
       await createUserDocument(userCredential.user.uid, name, email);
       console.log("User document created in Firestore");
+      
+      // Show success toast
+      toast({
+        title: "Account Created",
+        description: "Please check your email to verify your account.",
+      });
       
       return { success: true };
     } catch (error) {
@@ -134,6 +146,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         setCurrentUser(mockAdminUser);
         console.log("Mock admin user logged in");
+        
+        // Show success toast
+        toast({
+          title: "Logged In",
+          description: "Welcome back, Admin!",
+        });
+        
         return { success: true };
       }
       
@@ -159,12 +178,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         setCurrentUser(mockUser);
         console.log("Mock regular user logged in");
+        
+        // Show success toast
+        toast({
+          title: "Logged In",
+          description: "Welcome back!",
+        });
+        
         return { success: true };
       }
       
       // Normal Firebase authentication flow for non-demo accounts
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       console.log("User logged in successfully");
+      
+      // Show success toast
+      toast({
+        title: "Logged In",
+        description: "Welcome back!",
+      });
+      
       return { success: true };
     } catch (error) {
       const authError = error as AuthError;
@@ -185,6 +218,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         errorMessage = "Service temporarily unavailable. Please try again later.";
       }
       
+      // Show error toast
+      toast({
+        title: "Login Failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+      
       return { success: false, error: errorMessage };
     }
   };
@@ -196,14 +236,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (currentUser?.email === 'admin@f1mates.com' || currentUser?.email === 'user@example.com') {
         setCurrentUser(null);
         console.log("Mock user logged out");
+        
+        // Show success toast
+        toast({
+          title: "Logged Out",
+          description: "You have been successfully logged out.",
+        });
+        
         return;
       }
       
       // Normal Firebase logout for non-demo accounts
       await signOut(auth);
       console.log("User logged out successfully");
+      
+      // Show success toast
+      toast({
+        title: "Logged Out",
+        description: "You have been successfully logged out.",
+      });
     } catch (error) {
       console.error("Error logging out:", error);
+      
+      // Show error toast
+      toast({
+        title: "Error",
+        description: "Failed to log out. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
