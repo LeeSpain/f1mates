@@ -1,9 +1,7 @@
 
 import React from 'react';
-import { Users, Trophy, Flag, Shuffle, MessageCircle, ScrollText, HelpCircle } from 'lucide-react';
-import { cn } from '@/lib/utils';
-
-type Tab = 'mySquad' | 'leaderboard' | 'raceResults' | 'swapsAndPicks' | 'chat' | 'rules' | 'help';
+import { NavItem } from './nav/NavItem';
+import { navItems, Tab } from './nav/navItems';
 
 interface DashboardNavProps {
   activeTab: Tab;
@@ -11,16 +9,6 @@ interface DashboardNavProps {
 }
 
 export const DashboardNav = ({ activeTab, setActiveTab }: DashboardNavProps) => {
-  const tabs = [
-    { id: 'mySquad', label: 'My Squad', icon: Users },
-    { id: 'leaderboard', label: 'Leaderboard', icon: Trophy },
-    { id: 'raceResults', label: 'Race Results', icon: Flag },
-    { id: 'swapsAndPicks', label: 'Swaps & Picks', icon: Shuffle },
-    { id: 'chat', label: 'Banter Zone', icon: MessageCircle },
-    { id: 'rules', label: 'Rules', icon: ScrollText },
-    { id: 'help', label: 'Help', icon: HelpCircle },
-  ];
-  
   return (
     <nav className="w-64 bg-f1-black pt-6 border-r border-f1-silver/20 hidden md:block">
       <div className="px-3 mb-6">
@@ -28,23 +16,14 @@ export const DashboardNav = ({ activeTab, setActiveTab }: DashboardNavProps) => 
       </div>
       
       <ul className="space-y-1 px-3">
-        {tabs.map((tab) => {
-          const Icon = tab.icon;
-          return (
-            <li key={tab.id}>
-              <button
-                onClick={() => setActiveTab(tab.id as Tab)}
-                className={cn(
-                  "nav-item w-full text-left",
-                  activeTab === tab.id && "active"
-                )}
-              >
-                <Icon className="h-5 w-5" />
-                <span>{tab.label}</span>
-              </button>
-            </li>
-          );
-        })}
+        {navItems.map((item) => (
+          <NavItem
+            key={item.id}
+            {...item}
+            isActive={activeTab === item.id}
+            onClick={setActiveTab}
+          />
+        ))}
       </ul>
       
       <div className="mt-auto px-3 pb-6 pt-10">
