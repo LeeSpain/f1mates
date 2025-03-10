@@ -1,9 +1,9 @@
 
 import React from 'react';
-import { Users, Trophy, Flag, Shuffle, MessageCircle, ScrollText } from 'lucide-react';
+import { Users, Trophy, Flag, Shuffle, MessageCircle, ScrollText, HelpCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-type Tab = 'mySquad' | 'leaderboard' | 'raceResults' | 'swapsAndPicks' | 'chat' | 'rules';
+type Tab = 'mySquad' | 'leaderboard' | 'raceResults' | 'swapsAndPicks' | 'chat' | 'rules' | 'help';
 
 interface DashboardNavProps {
   activeTab: Tab;
@@ -18,6 +18,7 @@ export const DashboardNav = ({ activeTab, setActiveTab }: DashboardNavProps) => 
     { id: 'swapsAndPicks', label: 'Swaps & Picks', icon: Shuffle },
     { id: 'chat', label: 'Banter Zone', icon: MessageCircle },
     { id: 'rules', label: 'Rules', icon: ScrollText },
+    { id: 'help', label: 'Help', icon: HelpCircle },
   ];
   
   return (
