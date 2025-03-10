@@ -2,6 +2,7 @@
 import React from 'react';
 import { NavItem } from './nav/NavItem';
 import { navItems, Tab } from './nav/navItems';
+import { DeadlineNotice } from './nav/DeadlineNotice';
 
 interface DashboardNavProps {
   activeTab: Tab;
@@ -27,10 +28,7 @@ export const DashboardNav = ({ activeTab, setActiveTab }: DashboardNavProps) => 
       </ul>
       
       <div className="mt-auto px-3 pb-6 pt-10">
-        <div className="rounded-md bg-f1-darkBlue/50 p-4 border border-f1-silver/10">
-          <h3 className="font-medium text-sm text-white mb-2">Next Deadline</h3>
-          <p className="text-xs text-gray-300">Submit picks by Thursday before the Saudi Arabia GP</p>
-        </div>
+        <DeadlineNotice raceTitle="Saudi Arabia GP" />
       </div>
     </nav>
   );
