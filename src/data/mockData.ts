@@ -28,19 +28,19 @@ export const allDrivers: Driver[] = [
   { id: 18, name: "Nico Hulkenberg", team: "Haas F1 Team", group: "C", image: "https://media.formula1.com/content/dam/fom-website/drivers/2023Drivers/hulkenberg.jpg.img.1920.medium.jpg/1677070578195.jpg", points: 0, locked: false },
 ];
 
-// My squad
+// My squad - This will be replaced with real data from Firebase
 export const mySquad: Driver[] = [
   allDrivers[0], // Verstappen
   allDrivers[6], // Albon
   allDrivers[12], // Tsunoda
 ];
 
-// Swaps history
+// Swaps history - This will be replaced with real data from Firebase
 export const swapHistory: Swap[] = [
   { id: 1, date: "2025-03-01", oldDriverId: 9, newDriverId: 7, group: "B" }, // Swapped Gasly for Albon
 ];
 
-// Predictions
+// Predictions - This will be replaced with real data from Firebase
 export const predictions: Prediction[] = [
   { id: 1, race: "Bahrain GP", prediction: "Hamilton will finish on the podium", result: "correct", points: 10 },
   { id: 2, race: "Saudi GP", prediction: "Piastri will score points", result: "pending", points: 0 },
@@ -61,6 +61,7 @@ export interface PlayerStanding {
   isOnHotStreak: boolean;
 }
 
+// These will be replaced by real data from Firebase in production
 export const leaderboard: PlayerStanding[] = [
   { 
     id: 1, 
@@ -181,6 +182,7 @@ export interface ChatMessage {
   isYou: boolean;
 }
 
+// These will be replaced by real data from Firebase in production
 export const chatMessages: ChatMessage[] = [
   {
     id: 1,

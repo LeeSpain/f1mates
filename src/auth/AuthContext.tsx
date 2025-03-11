@@ -123,72 +123,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       console.log(`Attempting to log in user: ${email}`);
       
-      // For demo purposes only - allows specific admin accounts to bypass actual authentication
-      // In production, this should be removed
-      if (email === 'admin@f1mates.com' && password === 'Pass123!') {
-        // Create a mock admin user
-        const mockAdminUser = {
-          uid: 'admin-uid-123',
-          id: 1,
-          name: 'Admin User',
-          email: 'admin@f1mates.com',
-          avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=AdminUser',
-          groupAPoints: 0,
-          groupBPoints: 0,
-          groupCPoints: 0,
-          bonusPoints: 0, 
-          totalPoints: 0,
-          weeklyWins: 0,
-          bestGroupCFinish: 'N/A',
-          isAdmin: true,
-          sentInvites: []
-        };
-        
-        setCurrentUser(mockAdminUser);
-        console.log("Mock admin user logged in");
-        
-        // Show success toast
-        toast({
-          title: "Logged In",
-          description: "Welcome back, Admin!",
-        });
-        
-        return { success: true };
-      }
-      
-      // For demo purposes - allows regular test user to bypass authentication
-      if (email === 'user@example.com' && password === 'Pass123!') {
-        // Create a mock regular user
-        const mockUser = {
-          uid: 'user-uid-456',
-          id: 2,
-          name: 'Regular User',
-          email: 'user@example.com',
-          avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=RegularUser',
-          groupAPoints: 0,
-          groupBPoints: 0,
-          groupCPoints: 0,
-          bonusPoints: 0,
-          totalPoints: 0,
-          weeklyWins: 0,
-          bestGroupCFinish: 'N/A',
-          isAdmin: false,
-          sentInvites: []
-        };
-        
-        setCurrentUser(mockUser);
-        console.log("Mock regular user logged in");
-        
-        // Show success toast
-        toast({
-          title: "Logged In",
-          description: "Welcome back!",
-        });
-        
-        return { success: true };
-      }
-      
-      // Normal Firebase authentication flow for non-demo accounts
+      // Normal Firebase authentication flow
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       console.log("User logged in successfully");
       
@@ -232,21 +167,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Logout function
   const logout = async () => {
     try {
-      // For demo users, just clear the current user state
-      if (currentUser?.email === 'admin@f1mates.com' || currentUser?.email === 'user@example.com') {
-        setCurrentUser(null);
-        console.log("Mock user logged out");
-        
-        // Show success toast
-        toast({
-          title: "Logged Out",
-          description: "You have been successfully logged out.",
-        });
-        
-        return;
-      }
-      
-      // Normal Firebase logout for non-demo accounts
+      // Normal Firebase logout
       await signOut(auth);
       console.log("User logged out successfully");
       
