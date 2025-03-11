@@ -12,7 +12,7 @@ export interface Driver {
 }
 
 export interface Swap {
-  id: number;
+  id: number | string; // Allow both number and string IDs
   date: string;
   oldDriverId: number;
   newDriverId: number;
@@ -20,7 +20,7 @@ export interface Swap {
 }
 
 export interface Prediction {
-  id: number;
+  id: number | string; // Allow both number and string IDs
   race: string;
   prediction: string;
   result: 'pending' | 'correct' | 'incorrect';

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Driver } from '@/types/driver';
 import { allDrivers, predictions } from '@/data/mockData';
@@ -132,7 +131,7 @@ export const SwapsAndPicks = ({ drivers }: SwapsAndPicksProps) => {
       const swapRef = collection(db, 'swaps');
       await addDoc(swapRef, {
         userId: currentUser.uid,
-        oldDriverId: currentDriver => driver => currentDriverId,
+        oldDriverId: currentDriverId,
         newDriverId: selectedDriverId,
         driverGroup: group,
         date: Timestamp.now(),
