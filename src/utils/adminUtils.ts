@@ -27,6 +27,7 @@ export const isAllowedAdmin = (email: string): boolean => {
   // For demo purposes, these are allowed admin emails
   const allowedAdmins = [
     'admin@f1mates.com',
+    'admin@f1mates.app',
     'test@test.com',  // Adding a test email for easy testing
   ];
   

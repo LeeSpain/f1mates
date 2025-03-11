@@ -11,7 +11,7 @@ import {
   AuthError
 } from 'firebase/auth';
 import { auth, createRaceCollection, sendVerificationEmail } from '@/lib/firebase';
-import { getUserDocument, createUserDocument } from './userService';
+import { getUserDocument, createUserDocument, createDefaultAdminAccount } from './userService';
 import { User, AuthContextType } from './types';
 import { toast } from '@/hooks/use-toast';
 
@@ -36,6 +36,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Initialize race data
         await createRaceCollection();
         console.log("Race collection initialized");
+        
+        // Create default admin account
+        await createDefaultAdminAccount();
+        console.log("Default admin account initialized");
       } catch (error) {
         console.error("Error initializing data:", error);
       }
