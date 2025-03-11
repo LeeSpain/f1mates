@@ -13,7 +13,7 @@ import {
 import { db } from '@/lib/firebase';
 import { User } from './types';
 import { isAllowedAdmin } from '@/utils/adminUtils';
-import { createUserWithEmailAndPassword, getAuth, updateProfile } from 'firebase/auth';
+import { createUserWithEmailAndPassword, getAuth, updateProfile, AuthError } from 'firebase/auth';
 
 /**
  * Get or create a user document in Firestore
@@ -164,6 +164,7 @@ export const createDefaultAdminAccount = async (): Promise<boolean> => {
         displayName: 'Admin User',
         photoURL: `https://api.dicebear.com/7.x/avataaars/svg?seed=Admin`
       });
+      console.log("User profile updated successfully");
       
       // Create the admin document in Firestore with admin privileges
       const adminData: Omit<User, 'email' | 'avatar'> = {
