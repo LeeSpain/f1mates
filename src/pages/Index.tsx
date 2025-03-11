@@ -1,14 +1,16 @@
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Trophy, Flag, Users, ArrowRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/auth/AuthContext';
 import { Input } from '@/components/ui/input';
+import { validateInviteCode, markInvitationUsed } from '@/services/inviteService';
 
 const Index = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
   const { currentUser, login, register } = useAuth();
   
@@ -16,8 +18,36 @@ const Index = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [inviteCode, setInviteCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // Check for invite code in URL
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const code = params.get('code');
+    if (code) {
+      setInviteCode(code);
+      setIsLoginMode(false); // Switch to registration mode
+      
+      // Validate the invite code
+      validateInviteCode(code).then(receiverEmail => {
+        if (receiverEmail) {
+          setEmail(receiverEmail);
+          toast({
+            title: "Invite Code Valid",
+            description: "You've been invited to join F1 Mate Racer!",
+          });
+        } else {
+          toast({
+            title: "Invalid Invite Code",
+            description: "The invite code is invalid or has already been used.",
+            variant: "destructive",
+          });
+        }
+      });
+    }
+  }, [location, toast]);
 
   useEffect(() => {
     // If already logged in, redirect to dashboard
@@ -73,8 +103,28 @@ const Index = () => {
           return;
         }
         
+        // If invite code is provided, validate it again (to prevent tampering)
+        if (inviteCode) {
+          const validEmail = await validateInviteCode(inviteCode);
+          if (!validEmail || validEmail !== email) {
+            setError('Invalid invite code or email mismatch');
+            toast({
+              title: "Registration failed",
+              description: "Invalid invite code or email doesn't match invitation.",
+              variant: "destructive",
+            });
+            setIsLoading(false);
+            return;
+          }
+        }
+        
         const result = await register(name, email, password);
         if (result.success) {
+          // If registration is successful and there's an invite code, mark it as used
+          if (inviteCode) {
+            await markInvitationUsed(inviteCode);
+          }
+          
           toast({
             title: "Registration successful!",
             description: "Your account has been created.",
@@ -180,6 +230,7 @@ const Index = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
+                    readOnly={!isLoginMode && !!inviteCode} // Make email readonly if it's from an invite
                   />
                 </div>
                 
@@ -198,6 +249,20 @@ const Index = () => {
                     <p className="text-xs text-gray-400 mt-1">Password must be at least 6 characters</p>
                   )}
                 </div>
+                
+                {!isLoginMode && (
+                  <div>
+                    <label className="block text-sm font-medium mb-1" htmlFor="inviteCode">Invite Code</label>
+                    <Input 
+                      type="text" 
+                      id="inviteCode"
+                      className="w-full bg-white/10 border border-white/20 text-white"
+                      placeholder="Optional - Enter invite code"
+                      value={inviteCode}
+                      onChange={(e) => setInviteCode(e.target.value)}
+                    />
+                  </div>
+                )}
                 
                 {error && (
                   <div className="text-red-400 text-sm">{error}</div>

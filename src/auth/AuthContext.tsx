@@ -29,11 +29,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Initialize race data
+  // Initialize Firebase data
   useEffect(() => {
-    createRaceCollection().catch(error => {
-      console.error("Error creating race collection:", error);
-    });
+    const initializeData = async () => {
+      try {
+        // Initialize race data
+        await createRaceCollection();
+        console.log("Race collection initialized");
+      } catch (error) {
+        console.error("Error initializing data:", error);
+      }
+    };
+    
+    initializeData();
   }, []);
 
   // Set up the auth state listener
@@ -41,6 +49,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       try {
         if (firebaseUser) {
+          // Store the current user ID for isYou flag in messages
+          localStorage.setItem('currentUserId', firebaseUser.uid);
+          
           // Fetch user data from Firestore
           const user = await getUserDocument(
             firebaseUser.uid,
