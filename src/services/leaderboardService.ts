@@ -1,5 +1,4 @@
-
-import { collection, getDocs, doc, getDoc, query, where, orderBy, updateDoc, increment, serverTimestamp } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, query, where, orderBy, updateDoc, increment, serverTimestamp, limit } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { RaceResult, PlayerStanding } from '@/data/mockData';
 import { User } from '@/auth/types';
@@ -103,7 +102,6 @@ export const getLeaderboard = async (): Promise<PlayerStanding[]> => {
 
 /**
  * Calculate and update user points based on race results
- * Note: This would typically be done by an admin or a scheduled cloud function
  */
 export const calculateUserPoints = async (raceResultId: string): Promise<boolean> => {
   try {
