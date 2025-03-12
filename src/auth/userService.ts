@@ -1,4 +1,3 @@
-
 import { 
   doc, 
   getDoc, 
@@ -15,9 +14,9 @@ import {
   createUserWithEmailAndPassword, 
   getAuth, 
   updateProfile, 
-  AuthErrorCodes,
-  FirebaseError
+  AuthErrorCodes
 } from 'firebase/auth';
+import { FirebaseError } from 'firebase/app';
 import { db } from '@/lib/firebase';
 import { User } from './types';
 import { isAllowedAdmin } from '@/utils/adminUtils';

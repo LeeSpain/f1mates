@@ -4,8 +4,8 @@ import {
   sendEmailVerification, 
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
-  FirebaseError
 } from 'firebase/auth';
+import { FirebaseError } from 'firebase/app';
 import { auth } from './config';
 
 /**
