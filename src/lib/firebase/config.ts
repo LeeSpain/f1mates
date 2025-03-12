@@ -5,9 +5,9 @@ import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 
 // Your web app's Firebase configuration
-// Using a demo project configuration for development
+// Using a valid project configuration for development
 const firebaseConfig = {
-  apiKey: "AIzaSyBnJGm_7Qx7dHGXVBPAT5zKSLq0v1p8QMI",
+  apiKey: "AIzaSyDAaGzlr9_Jn5HKdaWQHhgBCFd5L3KyXnA",
   authDomain: "f1mates-app.firebaseapp.com",
   projectId: "f1mates-app",
   storageBucket: "f1mates-app.appspot.com",

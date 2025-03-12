@@ -1,3 +1,4 @@
+
 import { 
   doc, 
   getDoc, 
@@ -14,7 +15,8 @@ import {
   createUserWithEmailAndPassword, 
   getAuth, 
   updateProfile, 
-  AuthError 
+  AuthErrorCodes,
+  FirebaseError
 } from 'firebase/auth';
 import { db } from '@/lib/firebase';
 import { User } from './types';
@@ -193,7 +195,7 @@ export const createDefaultAdminAccount = async (): Promise<boolean> => {
       return true;
     } catch (error) {
       // If the user already exists in Auth but not in Firestore
-      if ((error as AuthError).code === 'auth/email-already-in-use') {
+      if ((error as FirebaseError).code === 'auth/email-already-in-use') {
         console.log("Admin user exists in Auth but not in Firestore, fixing...");
         // You could add code here to handle this edge case if needed
       }
