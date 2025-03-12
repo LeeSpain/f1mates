@@ -47,12 +47,16 @@ export const loginWithEmailAndPassword = async (email: string, password: string)
   }
 
   try {
-    console.log(`Attempting login with email: ${email}, password provided: ${password ? 'Yes' : 'No'}`);
+    console.log(`Attempting login with email: ${email}`);
     
     // For development testing - check if we're using the demo admin account
-    if (process.env.NODE_ENV === 'development' && email === 'admin@f1mates.app' && password === 'admin123') {
+    if (process.env.NODE_ENV === 'development' && email === 'admin@f1mates.app') {
       console.log("Using demo admin account - attempting login");
     }
+    
+    // We're temporarily adding extra debug to find the issue with login
+    console.log("Firebase auth:", auth);
+    console.log("Using signInWithEmailAndPassword function - imported version");
     
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     console.log(`Login successful for: ${email}`);

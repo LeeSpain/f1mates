@@ -4,9 +4,10 @@ import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
 import { getStorage, connectStorageEmulator } from 'firebase/storage';
 
 // Your web app's Firebase configuration
-// Using updated project configuration
+// Using updated project configuration with an example API key
+// This is a placeholder - replace with your actual Firebase project credentials
 const firebaseConfig = {
-  apiKey: "AIzaSyDAaGzlr9_Jn5HKdaWQHhgBCFd5L3KyXnA",
+  apiKey: "AIzaSyCC8g6QPGmyjH_Bsr37hVDwn1GjQwNlfGU", // Updated API key
   authDomain: "f1mates-app.firebaseapp.com",
   projectId: "f1mates-app",
   storageBucket: "f1mates-app.appspot.com",

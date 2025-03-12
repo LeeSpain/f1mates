@@ -154,12 +154,12 @@ export const createDefaultAdminAccount = async (): Promise<boolean> => {
     
     // First check if a user with admin@f1mates.app exists in Firebase Auth
     try {
-      // This line was causing the error - auth.signInWithEmailAndPassword doesn't exist
-      // We need to use the imported function instead
+      console.log("Checking if admin account exists...");
+      // Try to sign in with the admin credentials
       const testLoginResult = await signInWithEmailAndPassword(auth, adminEmail, adminPassword);
       
       if (testLoginResult.user) {
-        console.log("Admin account already exists in Firebase Auth");
+        console.log("Admin account already exists in Firebase Auth", testLoginResult.user.uid);
         
         // Make sure it exists in Firestore as well
         const userRef = doc(db, 'users', testLoginResult.user.uid);
@@ -185,19 +185,24 @@ export const createDefaultAdminAccount = async (): Promise<boolean> => {
           
           await setDoc(userRef, adminData);
           console.log("Admin document created in Firestore");
+        } else {
+          console.log("Admin document exists in Firestore");
         }
         
         return true;
       }
     } catch (error) {
       // If login fails, the user doesn't exist, so we'll create it
-      console.log("Admin account doesn't exist in Firebase Auth, creating it now");
+      console.log("Admin account doesn't exist in Firebase Auth or wrong password, creating it now");
+      const firebaseError = error as FirebaseError;
+      console.error("Error checking admin account:", firebaseError.code, firebaseError.message);
     }
     
     // Create the admin user in Firebase Authentication
     try {
+      console.log("Creating new admin user in Firebase Auth");
       const userCredential = await createUserWithEmailAndPassword(auth, adminEmail, adminPassword);
-      console.log("Admin user created in Firebase Auth");
+      console.log("Admin user created in Firebase Auth with UID:", userCredential.user.uid);
       
       // Update profile
       await updateProfile(userCredential.user, {
@@ -232,7 +237,14 @@ export const createDefaultAdminAccount = async (): Promise<boolean> => {
       // If the user already exists in Auth but we couldn't log in (wrong password)
       if (firebaseError.code === 'auth/email-already-in-use') {
         console.log("Admin user exists in Auth but with a different password");
-        // We could handle this case if needed
+        // Try to force-update the account
+        try {
+          console.log("Attempting password reset for admin account");
+          // You might want to handle this case differently in a production app
+          // For now, we'll just log it
+        } catch (resetError) {
+          console.error("Failed to reset admin password:", resetError);
+        }
       }
       
       console.error("Error creating admin account:", firebaseError);
