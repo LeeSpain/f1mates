@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -27,8 +26,9 @@ const Index = () => {
     if (process.env.NODE_ENV === 'development') {
       // Pre-fill email and password for easy testing
       if (isLoginMode) {
-        setEmail('test@test.com');
-        setPassword('password123');
+        setEmail('admin@f1mates.app');
+        setPassword('admin123');
+        console.log("Development mode: Pre-filled admin credentials");
       }
     }
   }, [isLoginMode]);
@@ -74,7 +74,7 @@ const Index = () => {
     
     try {
       if (isLoginMode) {
-        console.log(`Attempting to login with: ${email}`);
+        console.log(`Attempting to login with: ${email}, password length: ${password.length}`);
         const result = await login(email, password);
         
         if (result.success) {
@@ -82,6 +82,7 @@ const Index = () => {
           navigate('/dashboard');
         } else {
           setError(result.error || 'Invalid email or password');
+          console.error("Login failed:", result.error);
         }
       } else {
         // Registration
@@ -161,15 +162,34 @@ const Index = () => {
   const handleDemoLogin = async () => {
     setEmail('admin@f1mates.app');
     setPassword('admin123');
+    console.log("Demo login: Using admin credentials");
     
     try {
       setIsLoading(true);
+      toast({
+        title: "Demo Login",
+        description: "Using admin@f1mates.app / admin123",
+      });
+      
       const result = await login('admin@f1mates.app', 'admin123');
       
       if (result.success) {
         navigate('/dashboard');
       } else {
         setError(result.error || 'Failed to login with demo account');
+        console.error("Demo login failed:", result.error);
+        
+        // Try to create the admin account if it doesn't exist
+        console.log("Attempting to create admin account and try again");
+        await createDefaultAdminAccount();
+        
+        // Try logging in again
+        const secondAttempt = await login('admin@f1mates.app', 'admin123');
+        if (secondAttempt.success) {
+          navigate('/dashboard');
+        } else {
+          setError(secondAttempt.error || 'Failed to login with demo account');
+        }
       }
     } catch (error) {
       console.error("Demo login error:", error);

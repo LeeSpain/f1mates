@@ -146,18 +146,48 @@ export const getAllPlayers = async (): Promise<(User & { isCurrentLeader: boolea
  */
 export const createDefaultAdminAccount = async (): Promise<boolean> => {
   try {
+    console.log("Attempting to create default admin account");
     const auth = getAuth();
     const adminEmail = 'admin@f1mates.app';
     const adminPassword = 'admin123';
     
-    // Check if the user already exists in Firestore
-    const usersRef = collection(db, 'users');
-    const adminQuery = query(usersRef, where("email", "==", adminEmail));
-    const adminSnapshot = await getDocs(adminQuery);
-    
-    if (!adminSnapshot.empty) {
-      console.log("Admin account already exists");
-      return true;
+    // First check if a user with admin@f1mates.app exists in Firebase Auth
+    try {
+      const testLoginResult = await auth.signInWithEmailAndPassword(adminEmail, adminPassword);
+      if (testLoginResult.user) {
+        console.log("Admin account already exists in Firebase Auth");
+        
+        // Make sure it exists in Firestore as well
+        const userRef = doc(db, 'users', testLoginResult.user.uid);
+        const userDoc = await getDoc(userRef);
+        
+        if (!userDoc.exists()) {
+          console.log("Admin exists in Auth but not in Firestore, creating Firestore document");
+          // Create the admin document in Firestore
+          const adminData = {
+            id: parseInt(testLoginResult.user.uid.substring(0, 8), 16) % 1000,
+            name: 'Admin User',
+            groupAPoints: 0,
+            groupBPoints: 0,
+            groupCPoints: 0,
+            bonusPoints: 0,
+            totalPoints: 0,
+            weeklyWins: 0,
+            bestGroupCFinish: 'N/A',
+            isAdmin: true,
+            sentInvites: [],
+            uid: testLoginResult.user.uid
+          };
+          
+          await setDoc(userRef, adminData);
+          console.log("Admin document created in Firestore");
+        }
+        
+        return true;
+      }
+    } catch (error) {
+      // If login fails, the user doesn't exist, so we'll create it
+      console.log("Admin account doesn't exist in Firebase Auth, creating it now");
     }
     
     // Create the admin user in Firebase Authentication
@@ -173,7 +203,7 @@ export const createDefaultAdminAccount = async (): Promise<boolean> => {
       console.log("User profile updated successfully");
       
       // Create the admin document in Firestore with admin privileges
-      const adminData: Omit<User, 'email' | 'avatar'> = {
+      const adminData = {
         id: parseInt(userCredential.user.uid.substring(0, 8), 16) % 1000,
         name: 'Admin User',
         groupAPoints: 0,
@@ -193,16 +223,20 @@ export const createDefaultAdminAccount = async (): Promise<boolean> => {
       
       return true;
     } catch (error) {
-      // If the user already exists in Auth but not in Firestore
-      if ((error as FirebaseError).code === 'auth/email-already-in-use') {
-        console.log("Admin user exists in Auth but not in Firestore, fixing...");
-        // You could add code here to handle this edge case if needed
+      const firebaseError = error as FirebaseError;
+      
+      // If the user already exists in Auth but we couldn't log in (wrong password)
+      if (firebaseError.code === 'auth/email-already-in-use') {
+        console.log("Admin user exists in Auth but with a different password");
+        // We could handle this case if needed
       }
-      throw error;
+      
+      console.error("Error creating admin account:", firebaseError);
+      return false;
     }
     
   } catch (error) {
-    console.error("Error creating default admin account:", error);
+    console.error("Error in createDefaultAdminAccount:", error);
     return false;
   }
 };

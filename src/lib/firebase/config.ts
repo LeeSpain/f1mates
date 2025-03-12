@@ -21,4 +21,10 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 
+// Force authentication to work in local development
+if (process.env.NODE_ENV === 'development') {
+  console.log("Running in development mode - using local auth emulation");
+  auth.useDeviceLanguage();
+}
+
 export { app, auth, db, storage };

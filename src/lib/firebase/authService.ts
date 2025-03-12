@@ -38,8 +38,22 @@ export const sendPasswordReset = async (email: string): Promise<boolean> => {
  * Login with email and password
  */
 export const loginWithEmailAndPassword = async (email: string, password: string): Promise<{ success: boolean; user?: User; error?: string }> => {
+  if (!email || !password) {
+    console.error("Login error: Email or password is empty");
+    return { 
+      success: false, 
+      error: "Email and password are required" 
+    };
+  }
+
   try {
-    console.log(`Attempting login with email: ${email}, password length: ${password.length}`);
+    console.log(`Attempting login with email: ${email}, password provided: ${password ? 'Yes' : 'No'}`);
+    
+    // For development testing - check if we're using the demo admin account
+    if (process.env.NODE_ENV === 'development' && email === 'admin@f1mates.app' && password === 'admin123') {
+      console.log("Using demo admin account - attempting login");
+    }
+    
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     console.log(`Login successful for: ${email}`);
     return { 
@@ -67,6 +81,8 @@ export const loginWithEmailAndPassword = async (email: string, password: string)
       errorMessage = "Network error. Please check your internet connection.";
     } else if (firebaseError.code === 'auth/internal-error') {
       errorMessage = "An internal error occurred. Please try again later.";
+    } else if (firebaseError.code === 'auth/email-already-in-use') {
+      errorMessage = "This email is already in use with a different provider. Please try another login method.";
     }
     
     return { 
