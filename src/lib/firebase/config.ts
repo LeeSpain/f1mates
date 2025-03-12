@@ -40,9 +40,6 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 // Add verbose logging to help debug authentication issues
-const originalSignIn = auth.signInWithEmailAndPassword;
-if (originalSignIn) {
-  console.log("Adding debug logging to Firebase auth methods");
-}
+console.log("Firebase auth configuration complete");
 
 export { app, auth, db, storage };
