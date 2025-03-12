@@ -83,6 +83,13 @@ export const loginWithEmailAndPassword = async (email: string, password: string)
       errorMessage = "An internal error occurred. Please try again later.";
     } else if (firebaseError.code === 'auth/email-already-in-use') {
       errorMessage = "This email is already in use with a different provider. Please try another login method.";
+    } else if (firebaseError.code === 'auth/invalid-api-key') {
+      errorMessage = "Authentication configuration error. Please contact support.";
+      console.error("CRITICAL: Firebase API key is invalid. Check your configuration.");
+    } else if (firebaseError.code === 'auth/app-deleted') {
+      errorMessage = "The authentication service is unavailable. Please try again later.";
+    } else if (firebaseError.code === 'auth/app-not-authorized') {
+      errorMessage = "This app is not authorized to use Firebase Authentication.";
     }
     
     return { 
@@ -91,3 +98,6 @@ export const loginWithEmailAndPassword = async (email: string, password: string)
     };
   }
 };
+
+// Export additional helpful functions
+export { signInWithEmailAndPassword };

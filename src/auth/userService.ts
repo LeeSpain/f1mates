@@ -1,3 +1,4 @@
+
 import { 
   doc, 
   getDoc, 
@@ -13,8 +14,8 @@ import {
 import { 
   createUserWithEmailAndPassword, 
   getAuth, 
-  updateProfile, 
-  AuthErrorCodes
+  updateProfile,
+  signInWithEmailAndPassword
 } from 'firebase/auth';
 import { FirebaseError } from 'firebase/app';
 import { db } from '@/lib/firebase';
@@ -153,7 +154,10 @@ export const createDefaultAdminAccount = async (): Promise<boolean> => {
     
     // First check if a user with admin@f1mates.app exists in Firebase Auth
     try {
-      const testLoginResult = await auth.signInWithEmailAndPassword(adminEmail, adminPassword);
+      // This line was causing the error - auth.signInWithEmailAndPassword doesn't exist
+      // We need to use the imported function instead
+      const testLoginResult = await signInWithEmailAndPassword(auth, adminEmail, adminPassword);
+      
       if (testLoginResult.user) {
         console.log("Admin account already exists in Firebase Auth");
         

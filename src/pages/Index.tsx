@@ -6,6 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/auth/AuthContext';
 import { Input } from '@/components/ui/input';
 import { validateInviteCode, markInvitationUsed } from '@/services/inviteService';
+import { createDefaultAdminAccount } from '@/auth/userService';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -21,10 +22,8 @@ const Index = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Set some test values for easier debugging
   useEffect(() => {
     if (process.env.NODE_ENV === 'development') {
-      // Pre-fill email and password for easy testing
       if (isLoginMode) {
         setEmail('admin@f1mates.app');
         setPassword('admin123');
@@ -33,15 +32,13 @@ const Index = () => {
     }
   }, [isLoginMode]);
 
-  // Check for invite code in URL
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const code = params.get('code');
     if (code) {
       setInviteCode(code);
-      setIsLoginMode(false); // Switch to registration mode
+      setIsLoginMode(false);
       
-      // Validate the invite code
       validateInviteCode(code).then(receiverEmail => {
         if (receiverEmail) {
           setEmail(receiverEmail);
@@ -61,7 +58,6 @@ const Index = () => {
   }, [location, toast]);
 
   useEffect(() => {
-    // If already logged in, redirect to dashboard
     if (currentUser) {
       navigate('/dashboard');
     }
@@ -85,7 +81,6 @@ const Index = () => {
           console.error("Login failed:", result.error);
         }
       } else {
-        // Registration
         if (!name.trim()) {
           setError('Name is required');
           toast({
@@ -97,7 +92,6 @@ const Index = () => {
           return;
         }
         
-        // Password validation
         if (password.length < 6) {
           setError('Password must be at least 6 characters');
           toast({
@@ -109,7 +103,6 @@ const Index = () => {
           return;
         }
         
-        // If invite code is provided, validate it again (to prevent tampering)
         if (inviteCode) {
           const validEmail = await validateInviteCode(inviteCode);
           if (!validEmail || validEmail !== email) {
@@ -126,7 +119,6 @@ const Index = () => {
         
         const result = await register(name, email, password);
         if (result.success) {
-          // If registration is successful and there's an invite code, mark it as used
           if (inviteCode) {
             await markInvitationUsed(inviteCode);
           }
@@ -158,7 +150,6 @@ const Index = () => {
     setError('');
   };
 
-  // Quick login for demo/testing purposes - particularly useful during development
   const handleDemoLogin = async () => {
     setEmail('admin@f1mates.app');
     setPassword('admin123');
@@ -179,11 +170,9 @@ const Index = () => {
         setError(result.error || 'Failed to login with demo account');
         console.error("Demo login failed:", result.error);
         
-        // Try to create the admin account if it doesn't exist
         console.log("Attempting to create admin account and try again");
         await createDefaultAdminAccount();
         
-        // Try logging in again
         const secondAttempt = await login('admin@f1mates.app', 'admin123');
         if (secondAttempt.success) {
           navigate('/dashboard');
@@ -201,7 +190,6 @@ const Index = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-f1-darkBlue to-black text-white">
-      {/* Racing line animation */}
       <div className="fixed top-0 left-0 w-full h-1 overflow-hidden">
         <div className="absolute inset-0 bg-f1-red animate-race-by"></div>
       </div>
@@ -239,7 +227,6 @@ const Index = () => {
                 </div>
               </div>
               
-              {/* Demo Login Button */}
               <div className="text-center">
                 <Button 
                   variant="outline" 
@@ -287,7 +274,7 @@ const Index = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    readOnly={!isLoginMode && !!inviteCode} // Make email readonly if it's from an invite
+                    readOnly={!isLoginMode && !!inviteCode}
                   />
                 </div>
                 

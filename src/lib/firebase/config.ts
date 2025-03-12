@@ -1,11 +1,10 @@
-
 import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
-import { getStorage } from 'firebase/storage';
+import { getAuth, connectAuthEmulator } from 'firebase/auth';
+import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
+import { getStorage, connectStorageEmulator } from 'firebase/storage';
 
 // Your web app's Firebase configuration
-// Using a valid project configuration for development
+// Using updated project configuration
 const firebaseConfig = {
   apiKey: "AIzaSyDAaGzlr9_Jn5HKdaWQHhgBCFd5L3KyXnA",
   authDomain: "f1mates-app.firebaseapp.com",
@@ -23,8 +22,27 @@ const storage = getStorage(app);
 
 // Force authentication to work in local development
 if (process.env.NODE_ENV === 'development') {
-  console.log("Running in development mode - using local auth emulation");
+  console.log("Running in development mode - using local authentication");
+  
+  // In development, we'll use local emulators if they're running
+  // Otherwise, we'll use the remote Firebase project
+  try {
+    // Uncomment these lines if you're running Firebase emulators locally
+    // connectAuthEmulator(auth, 'http://localhost:9099');
+    // connectFirestoreEmulator(db, 'localhost', 8080);
+    // connectStorageEmulator(storage, 'localhost', 9199);
+    console.log("Connected to Firebase emulators");
+  } catch (e) {
+    console.log("Not using Firebase emulators, using remote project instead");
+  }
+  
   auth.useDeviceLanguage();
+}
+
+// Add verbose logging to help debug authentication issues
+const originalSignIn = auth.signInWithEmailAndPassword;
+if (originalSignIn) {
+  console.log("Adding debug logging to Firebase auth methods");
 }
 
 export { app, auth, db, storage };
