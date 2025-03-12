@@ -3,14 +3,17 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { 
   User as FirebaseUser, 
   createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword, 
   signOut, 
   onAuthStateChanged,
   updateProfile,
-  sendEmailVerification,
   AuthError
 } from 'firebase/auth';
-import { auth, createRaceCollection, sendVerificationEmail } from '@/lib/firebase';
+import { 
+  auth, 
+  createRaceCollection, 
+  sendVerificationEmail,
+  loginWithEmailAndPassword 
+} from '@/lib/firebase';
 import { getUserDocument, createUserDocument, createDefaultAdminAccount } from './userService';
 import { User, AuthContextType } from './types';
 import { toast } from '@/hooks/use-toast';
@@ -67,6 +70,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           console.log("User authenticated:", user.email);
         } else {
           setCurrentUser(null);
+          localStorage.removeItem('currentUserId');
           console.log("No user authenticated");
         }
       } catch (error) {
@@ -133,49 +137,48 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Login function
+  // Login function - Updated to use our new loginWithEmailAndPassword utility
   const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
-      console.log(`Attempting to log in user: ${email}`);
+      console.log(`Auth context: Attempting to log in user: ${email}`);
       
-      // Normal Firebase authentication flow
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      console.log("User logged in successfully");
+      // Use our new login function from authService
+      const result = await loginWithEmailAndPassword(email, password);
       
-      // Show success toast
-      toast({
-        title: "Logged In",
-        description: "Welcome back!",
-      });
-      
-      return { success: true };
-    } catch (error) {
-      const authError = error as AuthError;
-      console.error("Error logging in:", authError);
-      
-      let errorMessage = "Login failed. Please check your email and password.";
-      
-      // Map Firebase errors to user-friendly messages
-      if (authError.code === 'auth/user-not-found' || authError.code === 'auth/wrong-password') {
-        errorMessage = "Invalid email or password. Please try again.";
-      } else if (authError.code === 'auth/too-many-requests') {
-        errorMessage = "Too many failed login attempts. Please try again later.";
-      } else if (authError.code === 'auth/user-disabled') {
-        errorMessage = "This account has been disabled. Please contact support.";
-      } else if (authError.code === 'auth/network-request-failed') {
-        errorMessage = "Network error. Please check your connection and try again.";
-      } else if (authError.code === 'auth/invalid-api-key') {
-        errorMessage = "Service temporarily unavailable. Please try again later.";
+      if (result.success) {
+        console.log("Auth context: Login successful");
+        
+        // Show success toast
+        toast({
+          title: "Logged In",
+          description: "Welcome back!",
+        });
+      } else {
+        console.error("Auth context: Login failed:", result.error);
+        
+        // Show error toast
+        toast({
+          title: "Login Failed",
+          description: result.error,
+          variant: "destructive",
+        });
       }
+      
+      return result;
+    } catch (error) {
+      console.error("Unexpected error in login function:", error);
       
       // Show error toast
       toast({
-        title: "Login Failed",
-        description: errorMessage,
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
         variant: "destructive",
       });
       
-      return { success: false, error: errorMessage };
+      return { 
+        success: false, 
+        error: "An unexpected error occurred. Please try again." 
+      };
     }
   };
 

@@ -10,10 +10,15 @@ import {
   QueryDocumentSnapshot, 
   DocumentData 
 } from 'firebase/firestore';
+import { 
+  createUserWithEmailAndPassword, 
+  getAuth, 
+  updateProfile, 
+  AuthError 
+} from 'firebase/auth';
 import { db } from '@/lib/firebase';
 import { User } from './types';
 import { isAllowedAdmin } from '@/utils/adminUtils';
-import { createUserWithEmailAndPassword, getAuth, updateProfile, AuthError } from 'firebase/auth';
 
 /**
  * Get or create a user document in Firestore

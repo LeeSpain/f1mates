@@ -22,6 +22,17 @@ const Index = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // Set some test values for easier debugging
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      // Pre-fill email and password for easy testing
+      if (isLoginMode) {
+        setEmail('test@test.com');
+        setPassword('password123');
+      }
+    }
+  }, [isLoginMode]);
+
   // Check for invite code in URL
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -63,20 +74,14 @@ const Index = () => {
     
     try {
       if (isLoginMode) {
+        console.log(`Attempting to login with: ${email}`);
         const result = await login(email, password);
+        
         if (result.success) {
-          toast({
-            title: `Welcome back!`,
-            description: "You've successfully logged in.",
-          });
+          console.log("Login successful, redirecting to dashboard");
           navigate('/dashboard');
         } else {
           setError(result.error || 'Invalid email or password');
-          toast({
-            title: "Login failed",
-            description: result.error || "Invalid email or password.",
-            variant: "destructive",
-          });
         }
       } else {
         // Registration
@@ -132,15 +137,11 @@ const Index = () => {
           navigate('/dashboard');
         } else {
           setError(result.error || 'Registration failed. Please try again.');
-          toast({
-            title: "Registration failed",
-            description: result.error || "Please try a different email or check your information.",
-            variant: "destructive",
-          });
         }
       }
     } catch (err) {
-      setError('An error occurred');
+      console.error("Error during authentication:", err);
+      setError('An unexpected error occurred');
       toast({
         title: "Error",
         description: "An unexpected error occurred.",
@@ -154,6 +155,28 @@ const Index = () => {
   const toggleMode = () => {
     setIsLoginMode(!isLoginMode);
     setError('');
+  };
+
+  // Quick login for demo/testing purposes - particularly useful during development
+  const handleDemoLogin = async () => {
+    setEmail('admin@f1mates.app');
+    setPassword('admin123');
+    
+    try {
+      setIsLoading(true);
+      const result = await login('admin@f1mates.app', 'admin123');
+      
+      if (result.success) {
+        navigate('/dashboard');
+      } else {
+        setError(result.error || 'Failed to login with demo account');
+      }
+    } catch (error) {
+      console.error("Demo login error:", error);
+      setError('Failed to login with demo account');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -194,6 +217,20 @@ const Index = () => {
                     <p>Earn bonus points with predictions, challenges, and smart picks</p>
                   </div>
                 </div>
+              </div>
+              
+              {/* Demo Login Button */}
+              <div className="text-center">
+                <Button 
+                  variant="outline" 
+                  onClick={handleDemoLogin}
+                  className="border-white/20 hover:bg-white/10"
+                >
+                  Try Demo Account
+                </Button>
+                <p className="text-xs text-gray-400 mt-2">
+                  Use our demo account to explore the app's features
+                </p>
               </div>
             </div>
           </div>

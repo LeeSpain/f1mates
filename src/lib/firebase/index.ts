@@ -5,7 +5,11 @@ import { getDoc } from 'firebase/firestore';
 export { app, auth, db, storage } from './config';
 
 // Re-export from authService
-export { sendVerificationEmail, sendPasswordReset } from './authService';
+export { 
+  sendVerificationEmail, 
+  sendPasswordReset,
+  loginWithEmailAndPassword
+} from './authService';
 
 // Re-export from raceService
 export { createRaceCollection } from './raceService';
