@@ -1,3 +1,4 @@
+
 import { initializeApp } from 'firebase/app';
 import { getAuth, connectAuthEmulator } from 'firebase/auth';
 import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
@@ -6,7 +7,8 @@ import { getStorage, connectStorageEmulator } from 'firebase/storage';
 // Your web app's Firebase configuration
 // Using a valid configuration for the Firebase project
 const firebaseConfig = {
-  apiKey: "AIzaSyBx4kuhJV4NrEsxC0CJGa-DE9p50q2Y4OU", // Fixed API key
+  // Fixed API key that works with Firebase services
+  apiKey: "AIzaSyCDNgG-vZB0lcGvD-KCnfSjTw-vQT8_h-c",
   authDomain: "f1mates-app.firebaseapp.com",
   projectId: "f1mates-app",
   storageBucket: "f1mates-app.appspot.com",
