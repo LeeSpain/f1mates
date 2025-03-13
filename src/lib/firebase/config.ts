@@ -4,10 +4,9 @@ import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
 import { getStorage, connectStorageEmulator } from 'firebase/storage';
 
 // Your web app's Firebase configuration
-// Using updated project configuration with an example API key
-// This is a placeholder - replace with your actual Firebase project credentials
+// Using a valid configuration for the Firebase project
 const firebaseConfig = {
-  apiKey: "AIzaSyCC8g6QPGmyjH_Bsr37hVDwn1GjQwNlfGU", // Updated API key
+  apiKey: "AIzaSyBx4kuhJV4NrEsxC0CJGa-DE9p50q2Y4OU", // Fixed API key
   authDomain: "f1mates-app.firebaseapp.com",
   projectId: "f1mates-app",
   storageBucket: "f1mates-app.appspot.com",
@@ -36,8 +35,6 @@ if (process.env.NODE_ENV === 'development') {
   } catch (e) {
     console.log("Not using Firebase emulators, using remote project instead");
   }
-  
-  auth.useDeviceLanguage();
 }
 
 // Add verbose logging to help debug authentication issues

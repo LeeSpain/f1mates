@@ -54,9 +54,8 @@ export const loginWithEmailAndPassword = async (email: string, password: string)
       console.log("Using demo admin account - attempting login");
     }
     
-    // We're temporarily adding extra debug to find the issue with login
-    console.log("Firebase auth:", auth);
-    console.log("Using signInWithEmailAndPassword function - imported version");
+    // We're adding detailed logging to diagnose the issue
+    console.log("Firebase auth initiated:", !!auth);
     
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     console.log(`Login successful for: ${email}`);
@@ -94,6 +93,9 @@ export const loginWithEmailAndPassword = async (email: string, password: string)
       errorMessage = "The authentication service is unavailable. Please try again later.";
     } else if (firebaseError.code === 'auth/app-not-authorized') {
       errorMessage = "This app is not authorized to use Firebase Authentication.";
+    } else if (firebaseError.code === 'auth/argument-error') {
+      errorMessage = "Invalid login parameters. Please try again.";
+      console.error("CRITICAL: Argument error in authentication. Check parameters:", email, password ? "password-provided" : "no-password");
     }
     
     return { 

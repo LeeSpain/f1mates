@@ -71,6 +71,17 @@ const Index = () => {
     try {
       if (isLoginMode) {
         console.log(`Attempting to login with: ${email}, password length: ${password.length}`);
+        
+        // Create admin account if it doesn't exist (for convenience)
+        if (email === 'admin@f1mates.app' && password === 'admin123') {
+          try {
+            console.log("Ensuring admin account exists before login attempt");
+            await createDefaultAdminAccount();
+          } catch (error) {
+            console.error("Error ensuring admin account exists:", error);
+          }
+        }
+        
         const result = await login(email, password);
         
         if (result.success) {
@@ -159,9 +170,14 @@ const Index = () => {
       setIsLoading(true);
       toast({
         title: "Demo Login",
-        description: "Using admin@f1mates.app / admin123",
+        description: "Preparing admin account...",
       });
       
+      // Always create/ensure admin account exists first
+      console.log("Creating admin account if it doesn't exist");
+      await createDefaultAdminAccount();
+      
+      console.log("Attempting login with admin credentials");
       const result = await login('admin@f1mates.app', 'admin123');
       
       if (result.success) {
@@ -170,19 +186,23 @@ const Index = () => {
         setError(result.error || 'Failed to login with demo account');
         console.error("Demo login failed:", result.error);
         
-        console.log("Attempting to create admin account and try again");
-        await createDefaultAdminAccount();
-        
-        const secondAttempt = await login('admin@f1mates.app', 'admin123');
-        if (secondAttempt.success) {
-          navigate('/dashboard');
-        } else {
-          setError(secondAttempt.error || 'Failed to login with demo account');
-        }
+        // Show an error toast
+        toast({
+          title: "Login Failed",
+          description: result.error || "Failed to login with demo account. Please try again.",
+          variant: "destructive",
+        });
       }
     } catch (error) {
       console.error("Demo login error:", error);
       setError('Failed to login with demo account');
+      
+      // Show an error toast
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred with the demo login.",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
