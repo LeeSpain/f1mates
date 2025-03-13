@@ -2,8 +2,8 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { signIn } from '@/lib/firebase/authService';
-import { ensureAdminExists } from '@/auth/userService';
+import { loginWithEmailAndPassword } from '@/lib/firebase/authService';
+import { createDefaultAdminAccount } from '@/auth/userService';
 import { useToast } from '@/hooks/use-toast';
 
 export const DemoLoginSection: React.FC = () => {
@@ -15,12 +15,12 @@ export const DemoLoginSection: React.FC = () => {
     setLoading(true);
     try {
       // Make sure admin account exists
-      await ensureAdminExists();
+      await createDefaultAdminAccount();
       
       // Try to login with admin credentials
-      const success = await signIn('admin@f1mates.app', 'admin123');
+      const result = await loginWithEmailAndPassword('admin@f1mates.app', 'admin123');
       
-      if (success) {
+      if (result.success) {
         toast({
           title: "Demo Login Successful",
           description: "You're now logged in with the admin account",
